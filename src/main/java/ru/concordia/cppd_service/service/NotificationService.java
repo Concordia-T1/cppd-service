@@ -1,4 +1,4 @@
-package ru.concordia.cppd_service.api.v1.notification.service;
+package ru.concordia.cppd_service.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public void sendCandidateNotification(CandidateNotificationDto notification) {

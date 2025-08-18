@@ -1,36 +1,36 @@
-package ru.concordia.cppd_service.api.v1.template.service;
+package ru.concordia.cppd_service.api.v1.templates;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ru.concordia.cppd_service.dto.TemplateRequest;
-import ru.concordia.cppd_service.dto.TemplateResponse;
-import ru.concordia.cppd_service.dto.TemplatesCollectionResponse;
+import ru.concordia.cppd_service.api.v1.templates.model.CreateTemplateRequest;
+import ru.concordia.cppd_service.api.v1.templates.model.TemplateResponse;
+import ru.concordia.cppd_service.api.v1.templates.model.TemplatesCollectionResponse;
 import ru.concordia.cppd_service.model.Template;
 import ru.concordia.cppd_service.repository.TemplateRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TemplateService {
-
+public class TemplatesService {
     private final TemplateRepository templateRepository;
 
     public ResponseEntity<TemplatesCollectionResponse> getAllTemplates(Pageable pageable) {
         Page<Template> templatesPage = templateRepository.findAll(pageable);
 
         TemplatesCollectionResponse response = TemplatesCollectionResponse.builder()
-                .pageNumber(pageable.getPageNumber())
-                .pageSize(pageable.getPageSize())
+                .page_id(pageable.getPageNumber())
+                .page_size(pageable.getPageSize())
                 .templates(templatesPage.getContent().stream()
                         .map(this::mapToTemplateResponse)
                         .toList())
@@ -46,6 +46,8 @@ public class TemplateService {
 
         if (template.isEmpty()) {
             log.warn("Template with ID {} not found", id);
+            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
+            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
             return ResponseEntity.notFound().build();
         }
 
@@ -54,7 +56,9 @@ public class TemplateService {
     }
 
     @Transactional
-    public ResponseEntity<TemplateResponse> createTemplate(TemplateRequest request, Long ownerId) {
+    public ResponseEntity<TemplateResponse> createTemplate(CreateTemplateRequest request, Long ownerId, String principalRole) {
+        assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
+
         Template template = Template.builder()
                 .name(request.getName())
                 .subject(request.getSubject())
@@ -70,11 +74,15 @@ public class TemplateService {
     }
 
     @Transactional
-    public ResponseEntity<TemplateResponse> updateTemplate(Long id, TemplateRequest request) {
+    public ResponseEntity<TemplateResponse> updateTemplate(Long id, CreateTemplateRequest request, String principalRole) {
+        assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
+
         Optional<Template> existingTemplate = templateRepository.findById(id);
 
         if (existingTemplate.isEmpty()) {
-            log.warn("Attempt to update non-existing template with ID {}", id);
+            log.warn("Attempt to update non-existing templates with ID {}", id);
+            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
+            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
             return ResponseEntity.notFound().build();
         }
 
@@ -91,34 +99,45 @@ public class TemplateService {
     }
 
     public ResponseEntity<TemplatesCollectionResponse> getTemplatesByOwnerId(Long ownerId, Pageable pageable) {
-        List<Template> templates = templateRepository.findByOwnerId(ownerId);
+        // todo! зачем мы принимаем pageable если всё равно загружем разом все модели с БД?
+//        List<Template> templates = templateRepository.findByOwnerId(ownerId);
+//
+//        int start = (int) pageable.getOffset();
+//        int end = Math.min((start + pageable.getPageSize()), templates.size());
+//        List<Template> paginatedTemplates = templates.subList(start, end);
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), templates.size());
-        List<Template> paginatedTemplates = templates.subList(start, end);
+        // todo! корректный подход:
+        final var templates = templateRepository.findByOwnerId(ownerId, pageable).getContent();
 
         TemplatesCollectionResponse response = TemplatesCollectionResponse.builder()
-                .pageNumber(pageable.getPageNumber())
-                .pageSize(pageable.getPageSize())
-                .templates(paginatedTemplates.stream()
+                .page_id(pageable.getPageNumber())
+                .page_size(pageable.getPageSize())
+                .templates(templates.stream()
                         .map(this::mapToTemplateResponse)
                         .toList())
                 .build();
 
-        log.info("Retrieved templates for owner ID {}, page {}, page size {}",
+        log.info("Retrieved template for owner ID {}, page {}, page size {}",
                 ownerId, pageable.getPageNumber(), pageable.getPageSize());
+
         return ResponseEntity.ok(response);
     }
 
     private TemplateResponse mapToTemplateResponse(Template template) {
         return TemplateResponse.builder()
                 .id(template.getId())
-                .ownerId(template.getOwnerId())
+                .owner_id(template.getOwnerId())
                 .name(template.getName())
                 .subject(template.getSubject())
                 .content(template.getContent())
-                .createdAt(template.getCreatedAt())
-                .updatedAt(template.getUpdatedAt())
+                .created_at(template.getCreatedAt())
+                .updated_at(template.getUpdatedAt())
                 .build();
+    }
+
+    private void assertPermission(boolean condition) {
+        if (!condition) {
+            throw new AccessDeniedException("Insufficient rights");
+        }
     }
 }

@@ -7,11 +7,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.concordia.cppd_service.api.v1.claims.model.*;
 import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
 import ru.concordia.cppd_service.api.v1.model.SuccessResponse;
-import ru.concordia.cppd_service.api.v1.claims.model.ClaimResponse;
-import ru.concordia.cppd_service.api.v1.claims.model.ClaimsCollectionResponse;
-import ru.concordia.cppd_service.api.v1.claims.model.IssueResponse;
 
 @Slf4j
 @RestController
@@ -26,7 +24,7 @@ public class ClaimsController {
     @GetMapping({"/", ""})
     public ResponseEntity<ClaimsCollectionResponse> collection(
             @PageableDefault(size = 50, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestHeader("X-User-Role") String principalRole
+            @Valid @RequestHeader("X-User-Role") String principalRole
     ) {
         return claimsService.collection(principalRole, pageable);
     }
@@ -34,8 +32,8 @@ public class ClaimsController {
     @GetMapping("/{id}")
     public ResponseEntity<ClaimResponse> scalar(
             @Valid @PathVariable Long id,
-            @RequestHeader("X-User-ID") Long principalId,
-            @RequestHeader("X-User-Role") String principalRole
+            @Valid @RequestHeader("X-User-ID") Long principalId,
+            @Valid @RequestHeader("X-User-Role") String principalRole
     ) {
         return claimsService.scalar(id, principalId, principalRole);
     }
@@ -43,23 +41,32 @@ public class ClaimsController {
     @GetMapping("/my")
     public ResponseEntity<ClaimsCollectionResponse> myCollection(
             @PageableDefault(size = 50, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable,
-            @RequestHeader("X-User-ID") Long principalId
+            @Valid @RequestHeader("X-User-ID") Long principalId
     ) {
         log.info("X-User-ID: {}", principalId);
         return claimsService.myCollection(principalId, pageable);
     }
 
     @GetMapping("/issue")
-    public ResponseEntity<IssueResponse> issue() {
-        return claimsService.issue();
+    public ResponseEntity<IssueClaimResponse> issue(
+            @Valid @RequestBody IssueClaimRequest payload,
+            @Valid @RequestHeader("X-User-ID") Long principalId,
+            @Valid @RequestHeader("X-User-Email") String principalEmail
+    ) {
+        return claimsService.issue(payload, principalId, principalEmail);
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<ValidationResponse> validate(
+            @Valid @RequestBody ValidationRequest payload
+    ) throws EcdhContextExpiredException {
+        return claimsService.validate(payload);
     }
 
     @GetMapping("/act")
     public ResponseEntity<SuccessResponse> act(
-            @Valid @RequestParam String epk,
-            @Valid @RequestParam String ctx,
-            @Valid @RequestParam String sig
-    ) throws EcdhContextExpiredException {
-        return claimsService.act(epk, ctx, sig);
+            @Valid @RequestBody ActClaimRequest payload
+    ) {
+        return claimsService.act(payload);
     }
 }

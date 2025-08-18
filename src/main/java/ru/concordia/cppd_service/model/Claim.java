@@ -28,7 +28,8 @@ public class Claim {
     // X-Account-SMTP-Key: <Base64url encoded encrypted SMTP-key>
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "claim_seq") // для поддержки batch
+    @SequenceGenerator(name = "claim_seq", sequenceName = "claim_sequence")
     private Long id;
 
     @Column(name = "owner_id", nullable = false)

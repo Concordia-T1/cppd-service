@@ -24,6 +24,7 @@ import java.util.Base64;
 @Setter
 @ConfigurationProperties(prefix = "ecdh")
 public class EcdhLinkProperties {
+    private String domain;
     private Long expiry;
 
     private Resource hmacKeyRes;

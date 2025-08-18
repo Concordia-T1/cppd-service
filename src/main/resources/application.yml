@@ -24,6 +24,10 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 50
+        order_updates: true
+        order_inserts: true
     show-sql: true
 
   # Kafka
@@ -52,6 +56,7 @@ cppd:
     token-validity: 604800000
 
 ecdh:
+  domain: concordia.t1.innoca.local
   expiry: 604800
   hmac-key-res: classpath:keys/hmac-sha256-secret.txt
   private-key-res: classpath:keys/ecdsa-p256-private.pem

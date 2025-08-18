@@ -29,10 +29,12 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -55,7 +57,7 @@ public class EcdhLinkService {
     }
 
     @SneakyThrows
-    public void issue() {
+    public String issue(Long claimId, LocalDateTime now, LocalDateTime expiry) {
         final var rng = new SecureRandom();
 
         final var kpg = KeyPairGenerator.getInstance("EC");
@@ -125,12 +127,10 @@ public class EcdhLinkService {
         final var gcmSpec = new GCMParameterSpec(128, iv);
         cipherGcm.init(Cipher.ENCRYPT_MODE, cek, gcmSpec);
 
-        final var now = Instant.now().getEpochSecond();
-
         final var claimsMap = new HashMap<String, String>();
-        claimsMap.put("cid", "1");
-        claimsMap.put("iat", String.valueOf(now));
-        claimsMap.put("exp", String.valueOf(now + this.ecdhLinkProperties.getExpiry()));
+        claimsMap.put("cid", String.valueOf(claimId));
+        claimsMap.put("iat", String.valueOf(now.toEpochSecond(ZoneOffset.UTC)));
+        claimsMap.put("exp", String.valueOf(expiry.toEpochSecond(ZoneOffset.UTC)));
 
         log.info("claimsMap: {}", claimsMap);
 
@@ -159,12 +159,14 @@ public class EcdhLinkService {
                 .withoutPadding()
                 .encodeToString(sig);
 
-        storeEcdhSig(1L, sigSerialized);
+        storeEcdhSig(claimId, sigSerialized);
         log.info("sig: {}", sigSerialized);
+
+        return String.format("/invite?epk=%s&ctx=%s&sig=%s", epkSerialized, ctx, sigSerialized);
     }
 
     @SneakyThrows
-    public void act(
+    public Map<String, String> validate(
             String epkSerialized,
             String ctxSerialized,
             String sigSerialized
@@ -244,13 +246,14 @@ public class EcdhLinkService {
         log.info("claimsMap: {}", claimsMap);
 
         final var cid = Long.parseLong(claimsMap.get("cid"));
-        final var now = Instant.now().getEpochSecond();
+        final var now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
 
         if (Long.parseLong(claimsMap.get("exp")) <= now
                 || !isActiveEcdhSig(cid, sigSerialized))
             throw new EcdhContextExpiredException();
 
         revokeEcdhSig(cid);
+        return claimsMap;
     }
 
     public void storeEcdhSig(Long id, String sig) {

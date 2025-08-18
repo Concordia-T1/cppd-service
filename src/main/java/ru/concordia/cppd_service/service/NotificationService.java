@@ -30,7 +30,7 @@ public class NotificationService {
 
         future.whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("Notification successfully sent to candidate: {}. Offset: {}",
+                log.trace("Notification successfully sent to candidate: {}. Offset: {}",
                         notification.getRecipientEmail(),
                         result.getRecordMetadata().offset());
             } else {
@@ -51,7 +51,7 @@ public class NotificationService {
 
         future.whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("Notification successfully sent to manager: {}. Offset: {}",
+                log.trace("Notification successfully sent to manager: {}. Offset: {}",
                         notification.getManagerEmail(),
                         result.getRecordMetadata().offset());
             } else {

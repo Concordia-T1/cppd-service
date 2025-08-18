@@ -1,10 +1,10 @@
-package com.java.petrovsm.concordiacppdservice.service;
+package ru.concordia.cppd_service.service;
 
-import com.java.petrovsm.concordiacppdservice.config.KafkaTopicConfig;
-import com.java.petrovsm.concordiacppdservice.dto.CandidateNotificationDto;
-import com.java.petrovsm.concordiacppdservice.dto.ClaimStatusChangeDto;
-import com.java.petrovsm.concordiacppdservice.dto.ManagerNotificationDto;
-import com.java.petrovsm.concordiacppdservice.model.Claim;
+import ru.concordia.cppd_service.config.KafkaTopicConfig;
+import ru.concordia.cppd_service.dto.CandidateNotificationDto;
+import ru.concordia.cppd_service.dto.ClaimStatusChangeDto;
+import ru.concordia.cppd_service.dto.ManagerNotificationDto;
+import ru.concordia.cppd_service.model.Claim;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -40,8 +40,8 @@ public class NotificationService {
         log.info("Отправка уведомления об изменении статуса заявки: {}", statusChangeDto);
 
         // В зависимости от статуса отправляем разные уведомления
-        if (claim.getStatus() == Claim.ClaimStatus.CONSENT ||
-            claim.getStatus() == Claim.ClaimStatus.REFUSED) {
+        if (claim.getStatus() == Claim.ClaimStatus.STATUS_CONSENT ||
+            claim.getStatus() == Claim.ClaimStatus.STATUS_REFUSED) {
             sendManagerNotification(statusChangeDto);
         }
     }
@@ -71,7 +71,7 @@ public class NotificationService {
      * @param statusChangeDto Информация об изменении статуса заявки
      */
     private void sendManagerNotification(ClaimStatusChangeDto statusChangeDto) {
-        String status = statusChangeDto.getCurrentStatus() == Claim.ClaimStatus.CONSENT ? "согласие" : "отказ";
+        String status = statusChangeDto.getCurrentStatus() == Claim.ClaimStatus.STATUS_CONSENT ? "согласие" : "отказ";
 
         ManagerNotificationDto notificationDto = ManagerNotificationDto.builder()
                 .notificationType(Collections.singletonList("EMAIL"))

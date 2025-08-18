@@ -1,39 +1,37 @@
-package com.java.petrovsm.concordiacppdservice.model;
+package ru.concordia.cppd_service.model;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "cppd")
+@SuppressWarnings("JpaDataSourceORMInspection")
 @Data
+@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CPPD {
-
+@Table(name = "cppd")
+public class Cppd {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String version;
-
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
-    private boolean active;
-
-    @CreationTimestamp
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
+    @Nullable
+    @LastModifiedDate
+    @Column(name = "updated_at", insertable = false)
     private LocalDateTime updatedAt;
 }

@@ -1,6 +1,6 @@
-package com.java.petrovsm.concordiacppdservice.dto;
+package ru.concordia.cppd_service.dto;
 
-import com.java.petrovsm.concordiacppdservice.model.Claim;
+import ru.concordia.cppd_service.model.Claim;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

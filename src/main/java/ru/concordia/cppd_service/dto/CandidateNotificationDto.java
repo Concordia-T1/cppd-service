@@ -1,4 +1,4 @@
-package com.java.petrovsm.concordiacppdservice.dto;
+package ru.concordia.cppd_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CPPDUpdateRequest {
-    private String version;
+public class CandidateNotificationDto {
+    private String recipientEmail;
+    private String senderEmail;
+    private String subject;
     private String content;
-    private boolean active;
 }

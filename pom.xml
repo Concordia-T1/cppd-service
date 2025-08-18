@@ -8,8 +8,8 @@
         <version>3.5.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.java.PetrovSM</groupId>
-    <artifactId>ConcordiaCppdService</artifactId>
+    <groupId>ru.concordia.cppd_service</groupId>
+    <artifactId>cppd-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Concordia CPPD Service</name>
     <description>Concordia CPPD Service</description>

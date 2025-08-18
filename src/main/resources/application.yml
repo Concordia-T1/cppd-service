@@ -1,0 +1,42 @@
+#file: noinspection SpringBootApplicationYaml
+
+spring:
+  application:
+    name: cppd-service
+  config:
+    import: optional:file:.env[.properties]
+
+  # PostgreSQL Database Configuration
+  datasource:
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/concordia_cppd
+    username: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update # do not forget to switch later to liquibase
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+  # Kafka
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: concordia-cppd-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: ru.concordia.cppd_service.dto
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# App Configuration
+cppd:
+  jwt:
+    secret: ???? ???????? ?????
+    token-validity: 604800000

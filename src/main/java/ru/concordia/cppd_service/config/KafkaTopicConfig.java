@@ -1,4 +1,4 @@
-package com.java.petrovsm.concordiacppdservice.config;
+package ru.concordia.cppd_service.config;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -12,7 +12,6 @@ import java.util.Map;
 
 @Configuration
 public class KafkaTopicConfig {
-
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 

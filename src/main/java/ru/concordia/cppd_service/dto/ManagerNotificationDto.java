@@ -1,4 +1,4 @@
-package com.java.petrovsm.concordiacppdservice.dto;
+package ru.concordia.cppd_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

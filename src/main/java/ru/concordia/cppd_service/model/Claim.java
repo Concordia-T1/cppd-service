@@ -53,7 +53,7 @@ public class Claim {
     @Column(name = "candidate_phone")
     private String candidatePhone;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_id", nullable = false)
     private Template template;
 

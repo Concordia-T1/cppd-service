@@ -6,11 +6,18 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: master-key-51affce1eeb4a5698a42693bc99
+
   # PostgreSQL Database Configuration
   datasource:
-    password: postgres
-    url: jdbc:postgresql://localhost:5432/concordia_cppd
+    url: jdbc:postgresql://localhost:5432/postgres
     username: postgres
+    password: master-key-cf5fee912cd667ac564179e641e
   jpa:
     hibernate:
       ddl-auto: update # do not forget to switch later to liquibase
@@ -35,8 +42,17 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+server:
+  port: 8081
+
 # App Configuration
 cppd:
   jwt:
     secret: ???? ???????? ?????
     token-validity: 604800000
+
+ecdh:
+  expiry: 604800
+  hmac-key-res: classpath:keys/hmac-sha256-secret.txt
+  private-key-res: classpath:keys/ecdsa-p256-private.pem
+  public-key-res: classpath:keys/ecdsa-p256-public.pem

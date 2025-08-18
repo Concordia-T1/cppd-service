@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CppdUpdateRequest {
+public class CPPDUpdateRequest {
     private String content;
 }

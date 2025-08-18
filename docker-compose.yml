@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: concordia-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: concordia
+      POSTGRES_PASSWORD: concordia_password
+      POSTGRES_DB: concordia_cppd
+    volumes:
+      - concordia-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - concordia-network
+
+volumes:
+  concordia-postgres-data:
+
+networks:
+  concordia-network:
+    name: concordia-notification-network

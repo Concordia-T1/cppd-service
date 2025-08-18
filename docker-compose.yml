@@ -1,23 +1,85 @@
-version: '3.8'
 services:
   postgres:
-    image: postgres:15-alpine
-    container_name: concordia-postgres
+    image: postgres:17-alpine
+    container_name: postgres
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: concordia
-      POSTGRES_PASSWORD: concordia_password
-      POSTGRES_DB: concordia_cppd
     volumes:
-      - concordia-postgres-data:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
-    networks:
-      - concordia-network
 
-volumes:
-  concordia-postgres-data:
+  redis:
+    image: redis:8.0.3-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel notice --requirepass ${REDIS_PASS}
+    volumes:
+      - ./redis-data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
 
-networks:
-  concordia-network:
-    name: concordia-notification-network
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: controller,broker
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093,1@localhost:9093"
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT://localhost:9092
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: "core-cluster"
+    volumes:
+      - ./kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  spring-boot:
+    build: .
+    container_name: spring-boot
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped

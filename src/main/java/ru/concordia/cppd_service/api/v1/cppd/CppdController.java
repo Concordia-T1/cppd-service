@@ -10,7 +10,7 @@ import ru.concordia.cppd_service.api.v1.cppd.model.CppdUpdateRequest;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/cppd")
+@RequestMapping("/api/cppd-service/v1/cppd")
 public class CppdController {
     private final CppdService cppdService;
 

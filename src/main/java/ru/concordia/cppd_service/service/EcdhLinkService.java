@@ -252,7 +252,6 @@ public class EcdhLinkService {
                 || !isActiveEcdhSig(cid, sigSerialized))
             throw new EcdhContextExpiredException();
 
-        revokeEcdhSig(cid);
         return claimsMap;
     }
 

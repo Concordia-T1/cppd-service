@@ -9,7 +9,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ru.concordia.cppd_service.api.v1.templates.exceptions.TemplateNotFoundException;
 import ru.concordia.cppd_service.api.v1.templates.model.CreateTemplateRequest;
+import ru.concordia.cppd_service.api.v1.templates.model.TemplateRecord;
 import ru.concordia.cppd_service.api.v1.templates.model.TemplateResponse;
 import ru.concordia.cppd_service.api.v1.templates.model.TemplatesCollectionResponse;
 import ru.concordia.cppd_service.model.Template;
@@ -31,28 +33,28 @@ public class TemplatesService {
         TemplatesCollectionResponse response = TemplatesCollectionResponse.builder()
                 .page_id(pageable.getPageNumber())
                 .page_size(pageable.getPageSize())
+                .total_elements(templatesPage.getTotalElements())
+                .total_pages(templatesPage.getTotalPages())
                 .templates(templatesPage.getContent().stream()
-                        .map(this::mapToTemplateResponse)
+                        .map(this::mapToTemplateRecord)
                         .toList())
                 .build();
 
         log.info("Retrieved templates list, page {}, page size {}",
                 pageable.getPageNumber(), pageable.getPageSize());
+
         return ResponseEntity.ok(response);
     }
 
     public ResponseEntity<TemplateResponse> getTemplateById(Long id) {
-        Optional<Template> template = templateRepository.findById(id);
+        final var template = templateRepository.findById(id)
+                .orElseThrow(TemplateNotFoundException::new);
 
-        if (template.isEmpty()) {
-            log.warn("Template with ID {} not found", id);
-            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
-            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
-            return ResponseEntity.notFound().build();
-        }
+        log.info("Retrieved template with ID {}: {}", id, template.getName());
 
-        log.info("Retrieved template with ID {}: {}", id, template.get().getName());
-        return ResponseEntity.ok(mapToTemplateResponse(template.get()));
+        return ResponseEntity.ok(TemplateResponse.builder()
+                .template(mapToTemplateRecord(template))
+                .build());
     }
 
     @Transactional
@@ -70,7 +72,9 @@ public class TemplatesService {
         Template savedTemplate = templateRepository.save(template);
         log.info("Created new template with ID {}: {}", savedTemplate.getId(), savedTemplate.getName());
 
-        return ResponseEntity.ok(mapToTemplateResponse(savedTemplate));
+        return ResponseEntity.ok(TemplateResponse.builder()
+                .template(mapToTemplateRecord(savedTemplate))
+                .build());
     }
 
     @Transactional
@@ -95,25 +99,22 @@ public class TemplatesService {
         Template updatedTemplate = templateRepository.save(template);
         log.info("Updated template with ID {}: {}", updatedTemplate.getId(), updatedTemplate.getName());
 
-        return ResponseEntity.ok(mapToTemplateResponse(updatedTemplate));
+        return ResponseEntity.ok(TemplateResponse.builder()
+                .template(mapToTemplateRecord(updatedTemplate))
+                .build());
     }
 
     public ResponseEntity<TemplatesCollectionResponse> getTemplatesByOwnerId(Long ownerId, Pageable pageable) {
-        // todo! зачем мы принимаем pageable если всё равно загружем разом все модели с БД?
-//        List<Template> templates = templateRepository.findByOwnerId(ownerId);
-//
-//        int start = (int) pageable.getOffset();
-//        int end = Math.min((start + pageable.getPageSize()), templates.size());
-//        List<Template> paginatedTemplates = templates.subList(start, end);
-
-        // todo! корректный подход:
-        final var templates = templateRepository.findByOwnerId(ownerId, pageable).getContent();
+        final var templatesPage = templateRepository.findByOwnerId(ownerId, pageable);
+        final var templates = templatesPage.getContent();
 
         TemplatesCollectionResponse response = TemplatesCollectionResponse.builder()
                 .page_id(pageable.getPageNumber())
                 .page_size(pageable.getPageSize())
+                .total_elements(templatesPage.getTotalElements())
+                .total_pages(templatesPage.getTotalPages())
                 .templates(templates.stream()
-                        .map(this::mapToTemplateResponse)
+                        .map(this::mapToTemplateRecord)
                         .toList())
                 .build();
 
@@ -123,8 +124,8 @@ public class TemplatesService {
         return ResponseEntity.ok(response);
     }
 
-    private TemplateResponse mapToTemplateResponse(Template template) {
-        return TemplateResponse.builder()
+    private TemplateRecord mapToTemplateRecord(Template template) {
+        return TemplateRecord.builder()
                 .id(template.getId())
                 .owner_id(template.getOwnerId())
                 .name(template.getName())

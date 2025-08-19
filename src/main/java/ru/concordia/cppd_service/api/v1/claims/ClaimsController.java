@@ -24,7 +24,7 @@ public class ClaimsController {
     @GetMapping({"/", ""})
     public ResponseEntity<ClaimsCollectionResponse> collection(
             @PageableDefault(size = 50, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable,
-            @Valid @RequestHeader("X-User-Role") String principalRole
+            @RequestHeader("X-User-Role") String principalRole
     ) {
         return claimsService.collection(principalRole, pageable);
     }
@@ -47,7 +47,7 @@ public class ClaimsController {
         return claimsService.myCollection(principalId, pageable);
     }
 
-    @GetMapping("/issue")
+    @PostMapping("/issue")
     public ResponseEntity<IssueClaimResponse> issue(
             @Valid @RequestBody IssueClaimRequest payload,
             @Valid @RequestHeader("X-User-ID") Long principalId,
@@ -63,10 +63,10 @@ public class ClaimsController {
         return claimsService.validate(payload);
     }
 
-    @GetMapping("/act")
+    @PostMapping("/act")
     public ResponseEntity<SuccessResponse> act(
             @Valid @RequestBody ActClaimRequest payload
-    ) {
+    ) throws EcdhContextExpiredException {
         return claimsService.act(payload);
     }
 }

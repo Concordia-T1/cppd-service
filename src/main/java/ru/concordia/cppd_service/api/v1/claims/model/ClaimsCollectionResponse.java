@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Singular;
 import lombok.experimental.SuperBuilder;
 import ru.concordia.cppd_service.api.v1.model.SuccessResponse;
-import ru.concordia.cppd_service.model.Claim;
 
 import java.util.List;
 
@@ -29,5 +28,5 @@ public class ClaimsCollectionResponse extends SuccessResponse {
 
     @Schema(description = "List of claims")
     @Singular("claim")
-    private final List<Claim> claims;
+    private final List<ClaimRecord> claims;
 }

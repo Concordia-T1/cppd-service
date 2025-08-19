@@ -17,7 +17,7 @@ import org.springframework.data.domain.Sort;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/templates")
+@RequestMapping("/api/cppd-service/v1/templates")
 public class TemplatesController {
     private final TemplatesService templatesService;
 

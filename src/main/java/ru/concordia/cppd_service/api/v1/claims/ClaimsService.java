@@ -48,7 +48,7 @@ public class ClaimsService {
                         .page_size(pageable.getPageSize())
                         .total_elements(claimsPage.getTotalElements())
                         .total_pages(claimsPage.getTotalPages())
-                        .claims(claims)
+                        .claims(claims.stream().map(this::claimToRecord).toList())
                         .build()
         );
     }
@@ -62,7 +62,7 @@ public class ClaimsService {
 
         return ResponseEntity.ok(
                 ClaimResponse.builder()
-                        .claim(claim)
+                        .claim(claimToRecord(claim))
                         .build()
         );
     }
@@ -77,7 +77,7 @@ public class ClaimsService {
                         .page_size(pageable.getPageSize())
                         .total_elements(claimsPage.getTotalElements())
                         .total_pages(claimsPage.getTotalPages())
-                        .claims(claims)
+                        .claims(claims.stream().map(this::claimToRecord).toList())
                         .build()
         );
     }
@@ -108,7 +108,7 @@ public class ClaimsService {
 
         for (Claim claim : issuedClaims) {
             // noinspection HttpUrlsUsage
-            final var candidateUri = String.format("http://%s/%s",
+            final var candidateUri = String.format(" http://%s%s",
                     ecdhLinkProperties.getDomain(), ecdhLinkService.issue(claim.getId(), now, expiry));
 
             final var candidateNotification = notificationService.createCandidateNotification(
@@ -122,7 +122,7 @@ public class ClaimsService {
         }
 
         return ResponseEntity.ok(IssueClaimResponse.builder()
-                .claims(issuedClaims)
+                .claims(issuedClaims.stream().map(this::claimToRecord).toList())
                 .build());
     }
 
@@ -135,9 +135,15 @@ public class ClaimsService {
                 .build());
     }
 
-    public ResponseEntity<SuccessResponse> act(ActClaimRequest payload) {
+    public ResponseEntity<SuccessResponse> act(ActClaimRequest payload) throws EcdhContextExpiredException {
+        if (!ecdhLinkService.isActiveEcdhSig(payload.getClaim_id(), payload.getSig()))
+            throw new EcdhContextExpiredException();
+
         final var claim = claimRepository.findById(payload.getClaim_id())
                 .orElseThrow(ClaimNotFoundException::new);
+
+        assertPermission(claim.getStatus() == Claim.ClaimStatus.STATUS_QUEUED
+                || claim.getStatus() == Claim.ClaimStatus.STATUS_WAITING);
 
         claim.setStatus(payload.getState() == ActState.ACT_CONSENT ?
                 Claim.ClaimStatus.STATUS_CONSENT : Claim.ClaimStatus.STATUS_REFUSED);
@@ -145,10 +151,31 @@ public class ClaimsService {
         claim.setCandidateLastName(payload.getLast_name());
         claim.setCandidateFirstName(payload.getFirst_name());
         claim.setCandidateMiddleName(payload.getMiddle_name());
+        claim.setRespondedAt(LocalDateTime.now());
 
         claimRepository.save(claim);
+        ecdhLinkService.revokeEcdhSig(payload.getClaim_id());
 
         return ResponseEntity.ok(SuccessResponse.builder().build());
+    }
+
+    private ClaimRecord claimToRecord(Claim claim) {
+        return ClaimRecord.builder()
+                .id(claim.getId())
+                .owner_id(claim.getOwnerId())
+                .owner_email(claim.getOwnerEmail())
+                .candidate_email(claim.getCandidateEmail())
+                .candidate_last_name(claim.getCandidateLastName())
+                .candidate_first_name(claim.getCandidateFirstName())
+                .candidate_middle_name(claim.getCandidateMiddleName())
+                .candidate_phone(claim.getCandidatePhone())
+                .template_id(claim.getTemplate().getId())
+                .status(claim.getStatus())
+                .responded_at(claim.getRespondedAt())
+                .expires_at(claim.getExpiresAt())
+                .created_at(claim.getCreatedAt())
+                .updated_at(claim.getUpdatedAt())
+                .build();
     }
 
     private void assertPermission(boolean condition) {

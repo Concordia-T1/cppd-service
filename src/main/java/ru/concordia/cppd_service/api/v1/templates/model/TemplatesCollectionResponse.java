@@ -18,7 +18,13 @@ public class TemplatesCollectionResponse extends SuccessResponse {
     @Schema(description = "Page size")
     private int page_size;
 
+    @Schema(description = "Total remaining elements")
+    private final long total_elements;
+
+    @Schema(description = "Total remaining pages")
+    private final int total_pages;
+
     @Schema(description = "List of templates")
     @Singular("templates")
-    private List<TemplateResponse> templates;
+    private List<TemplateRecord> templates;
 }

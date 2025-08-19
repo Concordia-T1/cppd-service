@@ -18,6 +18,10 @@ public class ActClaimRequest {
     @NotNull(message = "Claim ID cannot be empty")
     private Long claim_id;
 
+    @Schema(description = "SIG (HMAC-SHA256 signature)")
+    @NotBlank(message = "SIG cannot be empty")
+    private String sig;
+
     @Schema(description = "Candidate last name")
     @NotBlank(message = "Candidate last name can't be empty")
     @Size(max = 50, message = "Candidate last name cannot exceed 50 characters")

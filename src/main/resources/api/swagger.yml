@@ -1,0 +1,941 @@
+openapi: 3.0.3
+info:
+  title: Concordia CPPD Service API
+  description: Authentication and account management service for Concordia platform
+  version: 0.0.1-SNAPSHOT
+  contact:
+    name: T1 Team-34
+servers:
+  - url: http://localhost:8080/api/cppd-service/v1
+    description: Local Development server
+
+paths:
+  /claims:
+    get:
+      tags:
+        - Claims
+      summary: Get paginated collection of claims
+      description: Retrieve a paginated list of all claims. Requires ADMIN role.
+      operationId: getClaimsCollection
+      parameters:
+        - $ref: '#/components/parameters/UserRole'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          $ref: '#/components/responses/ClaimsCollectionResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /claims/{id}:
+    get:
+      tags:
+        - Claims
+      summary: Get specific claim by ID
+      description: Retrieve a single claim by its ID. Users can access their own claims or admins can access any claim.
+      operationId: getClaimById
+      parameters:
+        - $ref: '#/components/parameters/ClaimId'
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/UserRole'
+      responses:
+        '200':
+          $ref: '#/components/responses/ClaimResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /claims/my:
+    get:
+      tags:
+        - Claims
+      summary: Get current user's claims
+      description: Retrieve a paginated list of claims owned by the authenticated user.
+      operationId: getMyClaimsCollection
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          $ref: '#/components/responses/ClaimsCollectionResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /claims/issue:
+    post:
+      tags:
+        - Claims
+      summary: Issue new claims
+      description: Create new CPPD claims for specified candidates using a template.
+      operationId: issueClaims
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/UserEmail'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueClaimRequest'
+            example:
+              candidates_emails:
+                - candidate1@example.com
+                - candidate2@example.com
+              manager_email: manager@company.com
+              template_id: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/IssueClaimResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /claims/validate:
+    post:
+      tags:
+        - Claims
+      summary: Validate secure claim link
+      description: Validate an ECDH-encrypted claim link and return the claim ID if valid.
+      operationId: validateClaimLink
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+            example:
+              epk: "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTI1NkdDTSJ9"
+              ctx: "encrypted.context.data"
+              sig: "hmac_sha256_signature"
+      responses:
+        '200':
+          $ref: '#/components/responses/ValidationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          description: Invalid or expired link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /claims/act:
+    post:
+      tags:
+        - Claims
+      summary: Act on a claim
+      description: Respond to a CPPD claim with consent or refusal, providing candidate information.
+      operationId: actOnClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActClaimRequest'
+            example:
+              claim_id: 123
+              sig: "hmac_signature_from_link"
+              last_name: "Doe"
+              first_name: "John"
+              middle_name: "William"
+              phone: "78001234567"
+              state: "ACT_CONSENT"
+      responses:
+        '200':
+          $ref: '#/components/responses/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          description: Invalid signature or expired context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cppd:
+    get:
+      tags:
+        - CPPD Management
+      summary: Get CPPD template
+      description: Retrieve the current CPPD (Consent for Personal Data Processing) template content.
+      operationId: getCppdTemplate
+      responses:
+        '200':
+          $ref: '#/components/responses/CppdResponse'
+
+  /cppd/update:
+    put:
+      tags:
+        - CPPD Management
+      summary: Update CPPD template
+      description: Update the CPPD template content. Requires ADMIN role.
+      operationId: updateCppdTemplate
+      parameters:
+        - $ref: '#/components/parameters/UserRole'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CppdUpdateRequest'
+            example:
+              content: |
+                ## Consent for Personal Data Processing
+                
+                By providing your personal information, you consent to the processing 
+                of your personal data in accordance with our privacy policy...
+      responses:
+        '200':
+          $ref: '#/components/responses/CppdResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /templates:
+    get:
+      tags:
+        - Templates
+      summary: Get all templates
+      description: Retrieve a paginated list of all available templates.
+      operationId: getAllTemplates
+      parameters:
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          $ref: '#/components/responses/TemplatesCollectionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /templates/{id}:
+    get:
+      tags:
+        - Templates
+      summary: Get template by ID
+      description: Retrieve a specific template by its ID.
+      operationId: getTemplateById
+      parameters:
+        - $ref: '#/components/parameters/TemplateId'
+      responses:
+        '200':
+          $ref: '#/components/responses/TemplateResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /templates/create:
+    post:
+      tags:
+        - Templates
+      summary: Create new template
+      description: Create a new message template for CPPD claims. Requires ADMIN role.
+      operationId: createTemplate
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+        - $ref: '#/components/parameters/UserRole'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTemplateRequest'
+            example:
+              name: "Standard CPPD Request"
+              subject: "Consent Required: Personal Data Processing"
+              content: |
+                Dear Candidate,
+                
+                We request your consent for processing your personal data.
+                Please click the link below to provide your response:
+      responses:
+        '200':
+          $ref: '#/components/responses/TemplateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /templates/{id}/update:
+    put:
+      tags:
+        - Templates
+      summary: Update existing template
+      description: Update an existing message template. Requires ADMIN role.
+      operationId: updateTemplate
+      parameters:
+        - $ref: '#/components/parameters/TemplateId'
+        - $ref: '#/components/parameters/UserRole'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTemplateRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TemplateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  parameters:
+    UserId:
+      name: X-User-ID
+      in: header
+      required: true
+      description: Authenticated user's ID
+      schema:
+        type: integer
+        format: int64
+        example: 123
+
+    UserEmail:
+      name: X-User-Email
+      in: header
+      required: true
+      description: Authenticated user's email address
+      schema:
+        type: string
+        format: email
+        example: user@company.com
+
+    UserRole:
+      name: X-User-Role
+      in: header
+      required: true
+      description: Authenticated user's role
+      schema:
+        type: string
+        enum: [ROLE_ADMIN, ROLE_MANAGER]
+        example: ROLE_ADMIN
+
+    ClaimId:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the claim
+      schema:
+        type: integer
+        format: int64
+        example: 123
+
+    TemplateId:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the template
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+    PageNumber:
+      name: page
+      in: query
+      description: Page number (0-based)
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+        example: 0
+
+    PageSize:
+      name: size
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+        example: 20
+
+    SortBy:
+      name: sort
+      in: query
+      description: Sort field
+      schema:
+        type: string
+        default: createdAt
+        example: createdAt
+
+    SortDirection:
+      name: direction
+      in: query
+      description: Sort direction
+      schema:
+        type: string
+        enum: [ASC, DESC]
+        default: DESC
+        example: DESC
+
+  securitySchemes:
+    HeaderAuth:
+      type: apiKey
+      in: header
+      name: X-User-ID
+      description: |
+        Header-based authentication using multiple headers:
+        - X-User-ID: User identifier
+        - X-User-Email: User email
+        - X-User-Role: User role (ROLE_ADMIN, ROLE_MANAGER)
+
+  schemas:
+    # Request DTOs
+    IssueClaimRequest:
+      type: object
+      required:
+        - candidates_emails
+        - manager_email
+        - template_id
+      properties:
+        candidates_emails:
+          type: array
+          items:
+            type: string
+            format: email
+          minItems: 1
+          description: List of candidate email addresses
+          example: ["candidate1@example.com", "candidate2@example.com"]
+        manager_email:
+          type: string
+          format: email
+          description: Manager's email address
+          example: manager@company.com
+        template_id:
+          type: integer
+          format: int64
+          description: ID of the template to use
+          example: 1
+
+    ActClaimRequest:
+      type: object
+      required:
+        - claim_id
+        - sig
+        - last_name
+        - first_name
+        - middle_name
+        - phone
+        - state
+      properties:
+        claim_id:
+          type: integer
+          format: int64
+          description: ID of the claim being acted upon
+          example: 123
+        sig:
+          type: string
+          description: HMAC-SHA256 signature from the secure link
+          example: "hmac_signature_string"
+        last_name:
+          type: string
+          maxLength: 50
+          description: Candidate's last name
+          example: "Doe"
+        first_name:
+          type: string
+          maxLength: 50
+          description: Candidate's first name
+          example: "John"
+        middle_name:
+          type: string
+          maxLength: 50
+          description: Candidate's middle name
+          example: "William"
+        phone:
+          type: string
+          maxLength: 15
+          pattern: '^[1-9][0-9]{7,14}$'
+          description: Candidate's phone number
+          example: "78001234567"
+        state:
+          type: string
+          enum: [ACT_CONSENT, ACT_REFUSED]
+          description: Candidate's response to the claim
+          example: "ACT_CONSENT"
+
+    ValidationRequest:
+      type: object
+      required:
+        - epk
+        - ctx
+        - sig
+      properties:
+        epk:
+          type: string
+          description: Ephemeral public key (base64 encoded)
+          example: "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTI1NkdDTSJ9"
+        ctx:
+          type: string
+          description: Encrypted context data
+          example: "encrypted.context.data"
+        sig:
+          type: string
+          description: HMAC-SHA256 signature
+          example: "hmac_sha256_signature"
+
+    CreateTemplateRequest:
+      type: object
+      required:
+        - name
+        - subject
+        - content
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          description: Template name
+          example: "Standard CPPD Request"
+        subject:
+          type: string
+          maxLength: 255
+          description: Email subject line
+          example: "Consent Required: Personal Data Processing"
+        content:
+          type: string
+          description: Email content template
+          example: |
+            Dear Candidate,
+            
+            We request your consent for processing your personal data.
+            Please click the link below to provide your response:
+
+    CppdUpdateRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: Updated CPPD template content
+          example: |
+            ## Consent for Personal Data Processing
+            
+            By providing your personal information, you consent to...
+
+    # Response DTOs
+    ClaimRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique claim identifier
+          example: 123
+        owner_id:
+          type: integer
+          format: int64
+          description: ID of the user who created the claim
+          example: 456
+        owner_email:
+          type: string
+          format: email
+          description: Email of the claim owner
+          example: manager@company.com
+        candidate_email:
+          type: string
+          format: email
+          description: Email of the candidate
+          example: candidate@example.com
+        candidate_last_name:
+          type: string
+          nullable: true
+          description: Candidate's last name (filled after response)
+          example: "Doe"
+        candidate_first_name:
+          type: string
+          nullable: true
+          description: Candidate's first name (filled after response)
+          example: "John"
+        candidate_middle_name:
+          type: string
+          nullable: true
+          description: Candidate's middle name (filled after response)
+          example: "William"
+        candidate_phone:
+          type: string
+          nullable: true
+          description: Candidate's phone number (filled after response)
+          example: "78001234567"
+        template_id:
+          type: integer
+          format: int64
+          description: Unique template identifier
+          example: 123
+        status:
+          type: string
+          enum: [STATUS_QUEUED, STATUS_WAITING, STATUS_CONSENT, STATUS_REFUSED, STATUS_TIMEOUT]
+          description: Current status of the claim
+          example: STATUS_QUEUED
+        responded_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when candidate responded
+          example: "2025-08-19T16:20:00Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: Claim expiration timestamp
+          example: "2025-08-26T10:30:00Z"
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-08-19T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last update timestamp
+          example: "2025-08-19T15:45:00Z"
+
+    ClaimResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            claim:
+              $ref: '#/components/schemas/ClaimRecord'
+
+    ClaimsCollectionResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            page_id:
+              type: integer
+              description: Current page number
+              example: 0
+            page_size:
+              type: integer
+              description: Page size
+              example: 20
+            total_elements:
+              type: integer
+              format: int64
+              description: Total number of elements
+              example: 150
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 8
+            claims:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClaimRecord'
+
+    IssueClaimResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            claims:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClaimRecord'
+
+    ValidationResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            claim_id:
+              type: integer
+              format: int64
+              description: ID of the validated claim
+              example: 123
+
+    CppdResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: CPPD template ID
+              example: 1
+            content:
+              type: string
+              description: CPPD template content
+              example: "Default CPPD template content"
+            createdAt:
+              type: string
+              format: date-time
+              description: Creation timestamp
+              example: "2025-08-19T10:30:00Z"
+            updatedAt:
+              type: string
+              format: date-time
+              nullable: true
+              description: Last update timestamp
+              example: "2025-08-19T15:45:00Z"
+
+    TemplateRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique template identifier
+          example: 1
+        owner_id:
+          type: integer
+          format: int64
+          description: ID of the template owner
+          example: 456
+        name:
+          type: string
+          description: Template name
+          example: "Standard CPPD Request"
+        subject:
+          type: string
+          description: Email subject line
+          example: "Consent Required: Personal Data Processing"
+        content:
+          type: string
+          description: Email content template
+          example: "Dear Candidate, we request your consent..."
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-08-19T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last update timestamp
+          example: "2025-08-19T15:45:00Z"
+
+    TemplateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            template:
+              $ref: '#/components/schemas/TemplateRecord'
+
+    TemplatesCollectionResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            page_id:
+              type: integer
+              description: Current page number
+              example: 0
+            page_size:
+              type: integer
+              description: Page size
+              example: 20
+            total_elements:
+              type: integer
+              format: int64
+              description: Total number of elements
+              example: 150
+            total_pages:
+              type: integer
+              description: Total number of pages
+              example: 8
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/TemplateRecord'
+
+    # Base Response Types
+    BaseResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: Indicates if the request was successful
+        detail:
+          type: string
+          nullable: true
+          description: Additional details about the response
+        validation_errors:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          description: Validation errors if any
+
+    SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            ok:
+              type: boolean
+              enum: [true]
+              example: true
+            detail:
+              type: string
+              nullable: true
+              example: null
+            validation_errors:
+              example: null
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            ok:
+              type: boolean
+              enum: [false]
+              example: false
+            detail:
+              type: string
+              description: Error description
+              example: "ACCESS_DENIED: Not authorized or insufficient rights"
+            validation_errors:
+              example: null
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field that failed validation
+          example: "candidates_emails"
+        detail:
+          type: string
+          description: Validation error message
+          example: "Candidates emails list cannot be empty"
+
+  responses:
+    ClaimResponse:
+      description: Single claim response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClaimResponse'
+
+    ClaimsCollectionResponse:
+      description: Paginated claims collection response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClaimsCollectionResponse'
+
+    IssueClaimResponse:
+      description: Claims issue response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/IssueClaimResponse'
+
+    ValidationResponse:
+      description: Link validation response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationResponse'
+
+    CppdResponse:
+      description: CPPD template response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CppdResponse'
+
+    TemplateResponse:
+      description: Single template response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TemplateResponse'
+
+    TemplatesCollectionResponse:
+      description: Paginated templates collection response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TemplatesCollectionResponse'
+
+    SuccessResponse:
+      description: Generic success response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessResponse'
+
+    BadRequestError:
+      description: Bad request error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            detail: "BAD_REQUEST: Request syntax is malformed, refer to 'validation_errors'"
+            validation_errors:
+              - field: "email"
+                detail: "Must be a well-formed email address"
+
+    UnauthorizedError:
+      description: Unauthorized access error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            detail: "ACCESS_DENIED: Not authorized or insufficient rights"
+            validation_errors: null
+
+    ForbiddenError:
+      description: Insufficient privileges error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            detail: "ACCESS_DENIED: Insufficient rights"
+            validation_errors: null
+
+    NotFoundError:
+      description: Resource not found error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            ok: false
+            detail: "ITEM_NOT_FOUND: Requested item not found"
+            validation_errors: null
+
+tags:
+  - name: Claims
+    description: Operations for managing CPPD claims
+  - name: CPPD Management
+    description: Operations for managing CPPD template content
+  - name: Templates
+    description: Operations for managing message templates
+
+security:
+  - HeaderAuth: []

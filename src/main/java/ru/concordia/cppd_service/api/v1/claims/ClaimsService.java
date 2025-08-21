@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.concordia.cppd_service.api.v1.claims.model.*;
+import ru.concordia.cppd_service.dto.ManagerNotificationDto;
 import ru.concordia.cppd_service.model.Claim;
 import ru.concordia.cppd_service.repository.TemplateRepository;
 import ru.concordia.cppd_service.service.NotificationService;
@@ -151,10 +152,32 @@ public class ClaimsService {
         claim.setCandidateLastName(payload.getLast_name());
         claim.setCandidateFirstName(payload.getFirst_name());
         claim.setCandidateMiddleName(payload.getMiddle_name());
+        claim.setCandidatePhone(payload.getPhone());
         claim.setRespondedAt(LocalDateTime.now());
 
         claimRepository.save(claim);
         ecdhLinkService.revokeEcdhSig(payload.getClaim_id());
+
+        //TODO: Максим посмотри в этот метод, если он уже где то реализован, нужно их смерджить и добавить сюда темплейт
+
+        // Отправляем уведомление менеджеру о решении кандидата
+        String decision = payload.getState() == ActState.ACT_CONSENT ? "consent" : "refusal";
+        String subject = "Candidate response: " + decision;
+        String content = String.format(
+                "Candidate %s %s (%s) has %s the personal data processing.",
+                payload.getFirst_name(),
+                payload.getLast_name(),
+                claim.getCandidateEmail(),
+                payload.getState() == ActState.ACT_CONSENT ? "consented to" : "refused"
+        );
+
+        // Создаем и отправляем уведомление с использованием UUID владельца заявки
+        ManagerNotificationDto notification = notificationService.createManagerNotification(
+                claim.getOwnerId().toString(), // Временно используем ID как UUID TODO: надо поменять на UUID все
+                subject,
+                content
+        );
+        notificationService.sendManagerNotification(notification);
 
         return ResponseEntity.ok(SuccessResponse.builder().build());
     }

@@ -162,7 +162,7 @@ public class ClaimsService {
 
         // Отправляем уведомление менеджеру о решении кандидата
         String decision = payload.getState() == ActState.ACT_CONSENT ? "consent" : "refusal";
-        String subject = "Candidate response: " + decision;
+        String subject = "Candidate response: " + decision; //TODO: добавить емаил в заголовок письма
         String content = String.format(
                 "Candidate %s %s (%s) has %s the personal data processing.",
                 payload.getFirst_name(),

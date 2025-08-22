@@ -434,6 +434,7 @@ components:
         - sig
         - last_name
         - first_name
+        - middle_name
         - phone
         - state
       properties:

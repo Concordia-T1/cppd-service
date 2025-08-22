@@ -9,15 +9,15 @@ spring:
   # Redis
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASS}
+      host: localhost
+      port: 6379
+      password: master-key-51affce1eeb4a5698a42693bc99
 
   # PostgreSQL Database Configuration
   datasource:
-    url: jdbc:${DB_URI}
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: master-key-cf5fee912cd667ac564179e641e
   jpa:
     hibernate:
       ddl-auto: update # do not forget to switch later to liquibase
@@ -32,7 +32,7 @@ spring:
 
   # Kafka
   kafka:
-    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: concordia-cppd-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -49,7 +49,7 @@ spring:
         spring.json.add.type.headers: false
 
 server:
-  port: ${CPPD_SERVICE_PORT}
+  port: 8081
 
 # App Configuration
 cppd:

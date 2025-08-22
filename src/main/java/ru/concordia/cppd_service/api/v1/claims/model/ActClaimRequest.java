@@ -33,6 +33,7 @@ public class ActClaimRequest {
     private String first_name;
 
     @Schema(description = "Candidate middle name")
+    @NotBlank(message = "Candidate middle name can't be empty")
     @Size(max = 50, message = "Candidate middle name cannot exceed 50 characters")
     private String middle_name;
 

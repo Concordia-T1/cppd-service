@@ -87,12 +87,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/IssueClaimRequest'
-            example:
-              candidates_emails:
-                - candidate1@example.com
-                - candidate2@example.com
-              manager_email: manager@company.com
-              template_id: 1
       responses:
         '200':
           $ref: '#/components/responses/IssueClaimResponse'
@@ -116,10 +110,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ValidationRequest'
-            example:
-              epk: "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTI1NkdDTSJ9"
-              ctx: "encrypted.context.data"
-              sig: "hmac_sha256_signature"
       responses:
         '200':
           $ref: '#/components/responses/ValidationResponse'
@@ -145,14 +135,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ActClaimRequest'
-            example:
-              claim_id: 123
-              sig: "hmac_signature_from_link"
-              last_name: "Doe"
-              first_name: "John"
-              middle_name: "William"
-              phone: "78001234567"
-              state: "ACT_CONSENT"
       responses:
         '200':
           $ref: '#/components/responses/SuccessResponse'
@@ -191,12 +173,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CppdUpdateRequest'
-            example:
-              content: |
-                ## Consent for Personal Data Processing
-                
-                By providing your personal information, you consent to the processing 
-                of your personal data in accordance with our privacy policy...
       responses:
         '200':
           $ref: '#/components/responses/CppdResponse'
@@ -254,14 +230,6 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateTemplateRequest'
-            example:
-              name: "Standard CPPD Request"
-              subject: "Consent Required: Personal Data Processing"
-              content: |
-                Dear Candidate,
-                
-                We request your consent for processing your personal data.
-                Please click the link below to provide your response:
       responses:
         '200':
           $ref: '#/components/responses/TemplateResponse'
@@ -316,7 +284,7 @@ components:
       schema:
         type: string
         format: email
-        example: user@company.com
+        example: user@concordia.t1.ru
 
     UserRole:
       name: X-User-Role
@@ -405,7 +373,6 @@ components:
       type: object
       required:
         - candidates_emails
-        - manager_email
         - template_id
       properties:
         candidates_emails:
@@ -415,12 +382,7 @@ components:
             format: email
           minItems: 1
           description: List of candidate email addresses
-          example: [ "candidate1@example.com", "candidate2@example.com" ]
-        manager_email:
-          type: string
-          format: email
-          description: Manager's email address
-          example: manager@company.com
+          example: [ "candidate1@concordia.t1.ru", "candidate2@concordia.t1.ru" ]
         template_id:
           type: string
           format: uuid
@@ -434,6 +396,7 @@ components:
         - sig
         - last_name
         - first_name
+        - birthdate
         - phone
         - state
       properties:
@@ -445,22 +408,27 @@ components:
         sig:
           type: string
           description: HMAC-SHA256 signature from the secure link
-          example: "hmac_signature_string"
+          example: "bjf91GQ_vfUPdOs1tPOu4dfACO7QdC7Pp0z0sDgAnmo"
         last_name:
           type: string
           maxLength: 50
           description: Candidate's last name
-          example: "Doe"
+          example: "Иванов"
         first_name:
           type: string
           maxLength: 50
           description: Candidate's first name
-          example: "John"
+          example: "Иван"
         middle_name:
           type: string
           maxLength: 50
           description: Candidate's middle name
-          example: "William"
+          example: "Иванович"
+        birthdate:
+          type: string
+          description: Candidate's date of birth
+          pattern: '^\d{2}\.\d{2}\.\d{4}$'
+          example: "31.12.1970"
         phone:
           type: string
           maxLength: 15
@@ -482,16 +450,16 @@ components:
       properties:
         epk:
           type: string
-          description: Ephemeral public key (base64 encoded)
-          example: "eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTI1NkdDTSJ9"
+          description: Ephemeral public key
+          example: "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAETBRX5tjnE_s6eXhs1oFER6MbfNyqfYpa6lS1JqRuVRz655uwDss0rxTVgwZmnhZ0pfopEtmCN-RL7UIRsuH9cw"
         ctx:
           type: string
           description: Encrypted context data
-          example: "encrypted.context.data"
+          example: "SAuXuuUyZxEFkz4QqYxA07TZ6BTuCwAk18HVaq3DylxPjyWFVvqllQ.cMkGmbBB_oZci1zP.CMk-f9LQphxgjEK1TBn2J1lwP195QWdddWoYyS_xVqjWplX2kWKeljj11IICY6vguU4yYtZt-ao8BnFubyMyfwXE9pKvdnNHHjVC3hHsygkB6h_nxQQ"
         sig:
           type: string
           description: HMAC-SHA256 signature
-          example: "hmac_sha256_signature"
+          example: "bjf91GQ_vfUPdOs1tPOu4dfACO7QdC7Pp0z0sDgAnmo"
 
     CreateTemplateRequest:
       type: object
@@ -550,37 +518,43 @@ components:
           type: string
           format: email
           description: Email of the claim owner
-          example: manager@company.com
+          example: manager@concordia.t1.ru
         candidate_email:
           type: string
           format: email
           description: Email of the candidate
-          example: candidate@example.com
+          example: candidate@concordia.t1.ru
         candidate_last_name:
           type: string
           nullable: true
           description: Candidate's last name (filled after response)
-          example: "Doe"
+          example: "Иванов"
         candidate_first_name:
           type: string
           nullable: true
           description: Candidate's first name (filled after response)
-          example: "John"
+          example: "Иван"
         candidate_middle_name:
           type: string
           nullable: true
           description: Candidate's middle name (filled after response)
-          example: "William"
+          example: "Иванович"
+        birthdate:
+          type: string
+          nullable: true
+          description: Candidate's date of birth
+          pattern: '^\d{2}\.\d{2}\.\d{4}$'
+          example: "31.12.1970"
         candidate_phone:
           type: string
           nullable: true
           description: Candidate's phone number (filled after response)
           example: "78001234567"
         template_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: Unique template identifier
-          example: 123
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
         status:
           type: string
           enum: [ STATUS_QUEUED, STATUS_WAITING, STATUS_CONSENT, STATUS_REFUSED, STATUS_TIMEOUT ]

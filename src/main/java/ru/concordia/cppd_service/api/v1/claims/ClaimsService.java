@@ -21,6 +21,7 @@ import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
 import ru.concordia.cppd_service.service.props.EcdhLinkProperties;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
@@ -191,6 +192,7 @@ public class ClaimsService {
                 .candidate_last_name(claim.getCandidateLastName())
                 .candidate_first_name(claim.getCandidateFirstName())
                 .candidate_middle_name(claim.getCandidateMiddleName())
+                .candidate_birthdate(claim.getCandidateBirthdate().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
                 .candidate_phone(claim.getCandidatePhone())
                 .template_id(claim.getTemplate().getId())
                 .status(claim.getStatus())

@@ -61,7 +61,7 @@ public class ClaimsController {
     @PostMapping("/validate")
     public ResponseEntity<ValidationResponse> validate(
             @Valid @RequestBody ValidationRequest payload
-    ) throws EcdhContextExpiredException {
+    ) {
         return claimsService.validate(payload);
     }
 

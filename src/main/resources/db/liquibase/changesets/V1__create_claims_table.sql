@@ -10,6 +10,7 @@ CREATE TABLE claims
     candidate_last_name   VARCHAR(255),
     candidate_first_name  VARCHAR(255),
     candidate_middle_name VARCHAR(255),
+    candidate_birthdate date,
     candidate_phone       VARCHAR(255),
     template_id           UUID                        NOT NULL,
     status                VARCHAR(255)                NOT NULL,

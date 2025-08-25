@@ -12,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import ru.concordia.cppd_service.model.strategy.UUIDv7Strategy;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -51,6 +52,9 @@ public class Claim {
 
     @Column(name = "candidate_middle_name")
     private String candidateMiddleName;
+
+    @Column(name = "candidate_birthdate")
+    private LocalDate candidateBirthdate;
 
     @Column(name = "candidate_phone")
     private String candidatePhone;

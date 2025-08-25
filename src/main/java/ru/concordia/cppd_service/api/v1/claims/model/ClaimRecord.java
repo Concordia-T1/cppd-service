@@ -33,6 +33,9 @@ public class ClaimRecord {
     @Schema(description = "Candidate middle name")
     private String candidate_middle_name;
 
+    @Schema(description = "Candidate birthdate")
+    private String candidate_birthdate;
+
     @Schema(description = "Candidate phone")
     private String candidate_phone;
 

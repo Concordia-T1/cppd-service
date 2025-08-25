@@ -57,7 +57,7 @@ cppd:
     secret: ???? ???????? ?????
     token-validity: 604800000
 
-ecdh:
+ecdh-link:
   domain: concordia.t1.innoca.local
   expiry: 604800
   hmac-key-res: classpath:keys/hmac-sha256-secret.txt

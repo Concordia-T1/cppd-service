@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  DB_URI: "postgresql://postgres-svc:5432/postgres"
+  REDIS_HOST: "redis-svc"
+  REDIS_PORT: "6379"
+  KAFKA_HOST: "kafka-svc"
+  KAFKA_PORT: "9092"
+  CPPD_SERVICE_PORT: "8081"
+  CPPD_SERVICE_URI: "http://cppd-backend-svc:8081"
+  ACTUATOR_PORT: "8085"
+  AUTH_SERVICE_URI: http://auth-backend-svc:8080
+  NOTIFICATION_SERVICE_PORT: "8082"
+  NOTIFICATION_SERVICE_ACTUATOR_PORT: "8083"

@@ -304,9 +304,9 @@ components:
       required: true
       description: Authenticated user's ID
       schema:
-        type: integer
-        format: int64
-        example: 123
+        type: string
+        format: uuid
+        example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
 
     UserEmail:
       name: X-User-Email
@@ -334,9 +334,9 @@ components:
       required: true
       description: Unique identifier of the claim
       schema:
-        type: integer
-        format: int64
-        example: 123
+        type: string
+        format: uuid
+        example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
 
     TemplateId:
       name: id
@@ -344,9 +344,9 @@ components:
       required: true
       description: Unique identifier of the template
       schema:
-        type: integer
-        format: int64
-        example: 1
+        type: string
+        format: uuid
+        example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
 
     PageNumber:
       name: page
@@ -395,7 +395,7 @@ components:
       name: X-User-ID
       description: |
         Header-based authentication using multiple headers:
-        - X-User-ID: User identifier
+        - X-User-ID: User identifier (UUIDv7)
         - X-User-Email: User email
         - X-User-Role: User role (ROLE_ADMIN, ROLE_MANAGER)
 
@@ -422,10 +422,10 @@ components:
           description: Manager's email address
           example: manager@company.com
         template_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: ID of the template to use
-          example: 1
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
 
     ActClaimRequest:
       type: object
@@ -438,10 +438,10 @@ components:
         - state
       properties:
         claim_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: ID of the claim being acted upon
-          example: 123
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
         sig:
           type: string
           description: HMAC-SHA256 signature from the secure link
@@ -537,15 +537,15 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: Unique claim identifier
-          example: 123
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
         owner_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: ID of the user who created the claim
-          example: 456
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
         owner_email:
           type: string
           format: email
@@ -660,10 +660,10 @@ components:
         - type: object
           properties:
             claim_id:
-              type: integer
-              format: int64
+              type: string
+              format: uuid
               description: ID of the validated claim
-              example: 123
+              example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
 
     CppdResponse:
       allOf:
@@ -671,10 +671,10 @@ components:
         - type: object
           properties:
             id:
-              type: integer
-              format: int64
+              type: string
+              format: uuid
               description: CPPD template ID
-              example: 1
+              example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
             content:
               type: string
               description: CPPD template content
@@ -695,15 +695,15 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: Unique template identifier
-          example: 1
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
         owner_id:
-          type: integer
-          format: int64
+          type: string
+          format: uuid
           description: ID of the template owner
-          example: 456
+          example: '0198e21a-af71-7e7f-b6d7-ec463e85184e'
         name:
           type: string
           description: Template name

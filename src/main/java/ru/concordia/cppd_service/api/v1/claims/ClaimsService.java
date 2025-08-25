@@ -133,7 +133,7 @@ public class ClaimsService {
         final var claims = ecdhLinkService.validate(payload.getEpk(), payload.getCtx(), payload.getSig());
 
         return ResponseEntity.ok(ValidationResponse.builder()
-                .claim_id(Long.parseLong(claims.get("cid")))
+                .claim_id(UUID.fromString(claims.get("cid")))
                 .build());
     }
 

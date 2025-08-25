@@ -10,7 +10,7 @@
     </parent>
     <groupId>ru.concordia.cppd_service</groupId>
     <artifactId>cppd-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <name>Concordia CPPD Service</name>
     <description>Concordia CPPD Service</description>
     <url/>
@@ -100,6 +100,18 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
             <version>1.81</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.uuid</groupId>
+            <artifactId>java-uuid-generator</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>4.33.0</version>
         </dependency>
     </dependencies>
 

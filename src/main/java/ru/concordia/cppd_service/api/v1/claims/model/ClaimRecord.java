@@ -6,16 +6,17 @@ import lombok.Data;
 import ru.concordia.cppd_service.model.Claim;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @Schema(description = "Claim")
 public class ClaimRecord {
-    @Schema(description = "ID")
-    private Long id;
+    @Schema(description = "UUIDv7")
+    private UUID id;
 
-    @Schema(description = "Owner ID")
-    private Long owner_id;
+    @Schema(description = "Owner UUIDv7")
+    private UUID owner_id;
 
     @Schema(description = "Owner email")
     private String owner_email;
@@ -35,8 +36,8 @@ public class ClaimRecord {
     @Schema(description = "Candidate phone")
     private String candidate_phone;
 
-    @Schema(description = "Template ID")
-    private Long template_id;
+    @Schema(description = "Template UUIDv7")
+    private UUID template_id;
 
     @Schema(description = "Status")
     private Claim.ClaimStatus status;

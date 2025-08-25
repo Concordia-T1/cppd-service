@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: changesets/V1__create_claims_table.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/V1__create_cppd_table.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/V2__create_templates_table.sql
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/V3__seed_initial_cppd.sql
+      relativeToChangelogFile: true

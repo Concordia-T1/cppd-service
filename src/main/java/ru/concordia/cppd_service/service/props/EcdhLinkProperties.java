@@ -22,7 +22,7 @@ import java.util.Base64;
 @Slf4j
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "ecdh")
+@ConfigurationProperties(prefix = "ecdh-link")
 public class EcdhLinkProperties {
     private String domain;
     private Long expiry;

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.concordia.cppd_service.api.v1.cppd.exceptions.CppdNotFoundException;
 import ru.concordia.cppd_service.api.v1.cppd.model.CppdResponse;
 import ru.concordia.cppd_service.api.v1.cppd.model.CppdUpdateRequest;
 import ru.concordia.cppd_service.model.Cppd;
@@ -23,17 +24,8 @@ public class CppdService {
     public ResponseEntity<CppdResponse> getCppdTemplate() {
         log.info("Fetching current CPPD templates");
 
-        Cppd cppd = cppdRepository.findById(1L)
-                .orElseGet(() -> {
-                    // todo! мы можем вынести создание дефолтного СОПД в changeset liquibase,
-                    //  как это уже реализовано в auth-service
-                    log.info("No CPPD templates found, creating default one");
-                    Cppd defaultCppd = Cppd.builder()
-                            .content("Default CPPD templates content")
-                            .createdAt(LocalDateTime.now())
-                            .build();
-                    return cppdRepository.save(defaultCppd);
-                });
+        Cppd cppd = cppdRepository.findFirstByOrderByCreatedAtDesc()
+                .orElseThrow(CppdNotFoundException::new);
 
         return ResponseEntity.ok(mapToResponse(cppd));
     }
@@ -44,14 +36,7 @@ public class CppdService {
 
         log.info("Updating CPPD templates");
 
-        if (request.getContent() == null || request.getContent().isBlank()) {
-            log.error("Invalid CPPD content: content cannot be empty");
-            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
-            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
-            return ResponseEntity.badRequest().build();
-        }
-
-        Cppd cppd = cppdRepository.findById(1L)
+        Cppd cppd = cppdRepository.findFirstByOrderByCreatedAtDesc()
                 .orElseGet(() -> Cppd.builder()
                         .createdAt(LocalDateTime.now())
                         .build());
@@ -75,8 +60,7 @@ public class CppdService {
     }
 
     private void assertPermission(boolean condition) {
-        if (!condition) {
+        if (!condition)
             throw new AccessDeniedException("Insufficient rights");
-        }
     }
 }

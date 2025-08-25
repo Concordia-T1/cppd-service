@@ -8,8 +8,10 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.concordia.cppd_service.api.v1.claims.model.*;
-import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
 import ru.concordia.cppd_service.api.v1.model.SuccessResponse;
+import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -31,8 +33,8 @@ public class ClaimsController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ClaimResponse> scalar(
-            @Valid @PathVariable Long id,
-            @Valid @RequestHeader("X-User-ID") Long principalId,
+            @Valid @PathVariable UUID id,
+            @Valid @RequestHeader("X-User-ID") UUID principalId,
             @Valid @RequestHeader("X-User-Role") String principalRole
     ) {
         return claimsService.scalar(id, principalId, principalRole);
@@ -41,7 +43,7 @@ public class ClaimsController {
     @GetMapping("/my")
     public ResponseEntity<ClaimsCollectionResponse> myCollection(
             @PageableDefault(size = 50, sort = {"createdAt"}, direction = Sort.Direction.DESC) Pageable pageable,
-            @Valid @RequestHeader("X-User-ID") Long principalId
+            @Valid @RequestHeader("X-User-ID") UUID principalId
     ) {
         log.info("X-User-ID: {}", principalId);
         return claimsService.myCollection(principalId, pageable);
@@ -50,7 +52,7 @@ public class ClaimsController {
     @PostMapping("/issue")
     public ResponseEntity<IssueClaimResponse> issue(
             @Valid @RequestBody IssueClaimRequest payload,
-            @Valid @RequestHeader("X-User-ID") Long principalId,
+            @Valid @RequestHeader("X-User-ID") UUID principalId,
             @Valid @RequestHeader("X-User-Email") String principalEmail
     ) {
         return claimsService.issue(payload, principalId, principalEmail);

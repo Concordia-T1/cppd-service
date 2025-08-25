@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import ru.concordia.cppd_service.api.v1.templates.exceptions.TemplateNotFoundException;
 import ru.concordia.cppd_service.api.v1.templates.model.CreateTemplateRequest;
 import ru.concordia.cppd_service.api.v1.templates.model.TemplateRecord;
@@ -19,7 +18,7 @@ import ru.concordia.cppd_service.repository.TemplateRepository;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -46,7 +45,7 @@ public class TemplatesService {
         return ResponseEntity.ok(response);
     }
 
-    public ResponseEntity<TemplateResponse> getTemplateById(Long id) {
+    public ResponseEntity<TemplateResponse> getTemplateById(UUID id) {
         final var template = templateRepository.findById(id)
                 .orElseThrow(TemplateNotFoundException::new);
 
@@ -58,7 +57,7 @@ public class TemplatesService {
     }
 
     @Transactional
-    public ResponseEntity<TemplateResponse> createTemplate(CreateTemplateRequest request, Long ownerId, String principalRole) {
+    public ResponseEntity<TemplateResponse> createTemplate(CreateTemplateRequest request, UUID ownerId, String principalRole) {
         assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
 
         Template template = Template.builder()
@@ -78,19 +77,12 @@ public class TemplatesService {
     }
 
     @Transactional
-    public ResponseEntity<TemplateResponse> updateTemplate(Long id, CreateTemplateRequest request, String principalRole) {
+    public ResponseEntity<TemplateResponse> updateTemplate(UUID id, CreateTemplateRequest request, String principalRole) {
         assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
 
-        Optional<Template> existingTemplate = templateRepository.findById(id);
+        final var template = templateRepository.findById(id)
+                .orElseThrow(TemplateNotFoundException::new);
 
-        if (existingTemplate.isEmpty()) {
-            log.warn("Attempt to update non-existing templates with ID {}", id);
-            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
-            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
-            return ResponseEntity.notFound().build();
-        }
-
-        Template template = existingTemplate.get();
         template.setName(request.getName());
         template.setSubject(request.getSubject());
         template.setContent(request.getContent());
@@ -104,7 +96,7 @@ public class TemplatesService {
                 .build());
     }
 
-    public ResponseEntity<TemplatesCollectionResponse> getTemplatesByOwnerId(Long ownerId, Pageable pageable) {
+    public ResponseEntity<TemplatesCollectionResponse> getTemplatesByOwnerId(UUID ownerId, Pageable pageable) {
         final var templatesPage = templateRepository.findByOwnerId(ownerId, pageable);
         final var templates = templatesPage.getContent();
 
@@ -137,8 +129,7 @@ public class TemplatesService {
     }
 
     private void assertPermission(boolean condition) {
-        if (!condition) {
+        if (!condition)
             throw new AccessDeniedException("Insufficient rights");
-        }
     }
 }

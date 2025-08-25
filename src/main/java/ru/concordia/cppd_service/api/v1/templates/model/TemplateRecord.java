@@ -5,16 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @Schema(description = "Template")
 public class TemplateRecord {
-    @Schema(description = "ID")
-    private Long id;
+    @Schema(description = "UUIDv7")
+    private UUID id;
 
-    @Schema(description = "Owner ID")
-    private Long owner_id;
+    @Schema(description = "Owner UUIDv7")
+    private UUID owner_id;
 
     @Schema(description = "Name")
     private String name;

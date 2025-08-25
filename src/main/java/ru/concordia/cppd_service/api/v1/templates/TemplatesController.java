@@ -4,15 +4,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import ru.concordia.cppd_service.api.v1.templates.model.CreateTemplateRequest;
 import ru.concordia.cppd_service.api.v1.templates.model.TemplateResponse;
 import ru.concordia.cppd_service.api.v1.templates.model.TemplatesCollectionResponse;
 
-import org.springframework.data.domain.Sort;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -31,7 +31,7 @@ public class TemplatesController {
 
     @GetMapping("/{id}")
     public ResponseEntity<TemplateResponse> getTemplateById(
-            @PathVariable Long id
+            @PathVariable UUID id
     ) {
         log.info("Request to get templates with ID: {}", id);
         return templatesService.getTemplateById(id);
@@ -40,7 +40,7 @@ public class TemplatesController {
     @PostMapping("/create")
     public ResponseEntity<TemplateResponse> createTemplate(
             @Valid @RequestBody CreateTemplateRequest request,
-            @RequestHeader("X-User-ID") Long principalId,
+            @RequestHeader("X-User-ID") UUID principalId,
             @RequestHeader("X-User-Role") String principalRole
     ) {
         log.info("Request to create new templates: {}", request.getName());
@@ -49,7 +49,7 @@ public class TemplatesController {
 
     @PutMapping("/{id}/update")
     public ResponseEntity<TemplateResponse> updateTemplate(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @RequestBody CreateTemplateRequest request,
             @RequestHeader("X-User-Role") String principalRole
     ) {

@@ -6,11 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import ru.concordia.cppd_service.model.strategy.UUIDv7Strategy;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Data
@@ -22,13 +25,12 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class Template {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @UuidGenerator(algorithm = UUIDv7Strategy.class)
+    private UUID id;
 
     @Column(nullable = false)
-    private Long ownerId;
+    private UUID ownerId;
 
-    // Лучше пусть будет name, в случаях если у неск. шаблонов будет один subject
     @Column(nullable = false)
     private String name;
 

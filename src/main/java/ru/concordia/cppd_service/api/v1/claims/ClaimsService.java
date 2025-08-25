@@ -8,21 +8,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.concordia.cppd_service.api.v1.claims.exceptions.ClaimNotFoundException;
 import ru.concordia.cppd_service.api.v1.claims.model.*;
+import ru.concordia.cppd_service.api.v1.model.SuccessResponse;
+import ru.concordia.cppd_service.api.v1.templates.exceptions.TemplateNotFoundException;
 import ru.concordia.cppd_service.model.Claim;
+import ru.concordia.cppd_service.repository.ClaimRepository;
 import ru.concordia.cppd_service.repository.TemplateRepository;
+import ru.concordia.cppd_service.service.EcdhLinkService;
 import ru.concordia.cppd_service.service.NotificationService;
 import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
-import ru.concordia.cppd_service.api.v1.model.SuccessResponse;
-import ru.concordia.cppd_service.api.v1.claims.exceptions.ClaimNotFoundException;
-import ru.concordia.cppd_service.repository.ClaimRepository;
-import ru.concordia.cppd_service.service.EcdhLinkService;
-import ru.concordia.cppd_service.api.v1.templates.exceptions.TemplateNotFoundException;
 import ru.concordia.cppd_service.service.props.EcdhLinkProperties;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -53,7 +55,7 @@ public class ClaimsService {
         );
     }
 
-    public ResponseEntity<ClaimResponse> scalar(Long id, Long principalId, String principalRole) {
+    public ResponseEntity<ClaimResponse> scalar(UUID id, UUID principalId, String principalRole) {
         final var claim = claimRepository.findById(id)
                 .orElseThrow(ClaimNotFoundException::new);
 
@@ -67,7 +69,7 @@ public class ClaimsService {
         );
     }
 
-    public ResponseEntity<ClaimsCollectionResponse> myCollection(Long principalId, Pageable pageable) {
+    public ResponseEntity<ClaimsCollectionResponse> myCollection(UUID principalId, Pageable pageable) {
         final var claimsPage = claimRepository.findByOwnerId(principalId, pageable);
         final var claims = claimsPage.getContent();
 
@@ -83,7 +85,7 @@ public class ClaimsService {
     }
 
     @Transactional
-    public ResponseEntity<IssueClaimResponse> issue(IssueClaimRequest payload, Long principalId, String principalEmail) {
+    public ResponseEntity<IssueClaimResponse> issue(IssueClaimRequest payload, UUID principalId, String principalEmail) {
         final var issuedClaims = new ArrayList<Claim>(payload.getCandidates_emails().size());
         final var template = templateRepository.findById(payload.getTemplate_id())
                 .orElseThrow(TemplateNotFoundException::new);
@@ -113,7 +115,7 @@ public class ClaimsService {
 
             final var candidateNotification = notificationService.createCandidateNotification(
                     claim.getCandidateEmail(),
-                    principalEmail,
+                    principalId,
                     template.getSubject(),
                     template.getContent() + candidateUri // for now.
             );
@@ -127,11 +129,11 @@ public class ClaimsService {
     }
 
     @SneakyThrows
-    public ResponseEntity<ValidationResponse> validate(ValidationRequest payload) throws EcdhContextExpiredException {
+    public ResponseEntity<ValidationResponse> validate(ValidationRequest payload) {
         final var claims = ecdhLinkService.validate(payload.getEpk(), payload.getCtx(), payload.getSig());
 
         return ResponseEntity.ok(ValidationResponse.builder()
-                .claim_id(Long.parseLong(claims.get("cid")))
+                .claim_id(UUID.fromString(claims.get("cid")))
                 .build());
     }
 
@@ -151,10 +153,31 @@ public class ClaimsService {
         claim.setCandidateLastName(payload.getLast_name());
         claim.setCandidateFirstName(payload.getFirst_name());
         claim.setCandidateMiddleName(payload.getMiddle_name());
+        claim.setCandidatePhone(payload.getPhone());
         claim.setRespondedAt(LocalDateTime.now());
 
         claimRepository.save(claim);
         ecdhLinkService.revokeEcdhSig(payload.getClaim_id());
+
+        // Отправляем уведомление менеджеру о решении кандидата
+        final var subjectDecision = payload.getState() == ActState.ACT_CONSENT ? "СОГЛАСИЕ" : "ОТКАЗ";
+        final var subject = String.format("%s | Ответ кандидата [%s]", subjectDecision, claim.getCandidateEmail());
+        final var content = String.format(
+                "Кандидат %s %s %s (%s) дал <b>%s</b> в подписи документа на обработку персональных данных.",
+                payload.getLast_name(),
+                payload.getFirst_name(),
+                payload.getMiddle_name(),
+                claim.getCandidateEmail(),
+                subjectDecision.toLowerCase(Locale.of("ru"))
+        );
+
+        // Создаем и отправляем уведомление с использованием UUID владельца заявки
+        final var notification = notificationService.createManagerNotification(
+                claim.getOwnerId(),
+                subject,
+                content
+        );
+        notificationService.sendManagerNotification(notification);
 
         return ResponseEntity.ok(SuccessResponse.builder().build());
     }
@@ -179,8 +202,7 @@ public class ClaimsService {
     }
 
     private void assertPermission(boolean condition) {
-        if (!condition) {
+        if (!condition)
             throw new AccessDeniedException("Insufficient rights");
-        }
     }
 }

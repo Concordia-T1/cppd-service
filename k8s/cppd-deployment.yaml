@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cppd-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cppd-backend
+  template:
+    metadata:
+      labels:
+        app: cppd-backend
+    spec:
+      containers:
+      - name: cppd-backend
+        image: alexeykarakcheev/sppd-svc:latest
+        ports:
+        - containerPort: 8081
+        envFrom:
+          - configMapRef:
+              name: backend-config
+          - secretRef:
+              name: backend-secret
+        # resources:
+        #   limits:
+        #     memory: "128Mi"
+        #     cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cppd-backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: cppd-backend
+  ports:
+  - port: 8081
+    targetPort: 8081
+    protocol: TCP

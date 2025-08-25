@@ -23,7 +23,7 @@ public class CppdService {
     public ResponseEntity<CppdResponse> getCppdTemplate() {
         log.info("Fetching current CPPD templates");
 
-        Cppd cppd = cppdRepository.findById(1L)
+        Cppd cppd = cppdRepository.findFirstByOrderByCreatedAtDesc()
                 .orElseGet(() -> {
                     // todo! мы можем вынести создание дефолтного СОПД в changeset liquibase,
                     //  как это уже реализовано в auth-service
@@ -51,7 +51,7 @@ public class CppdService {
             return ResponseEntity.badRequest().build();
         }
 
-        Cppd cppd = cppdRepository.findById(1L)
+        Cppd cppd = cppdRepository.findFirstByOrderByCreatedAtDesc()
                 .orElseGet(() -> Cppd.builder()
                         .createdAt(LocalDateTime.now())
                         .build());
@@ -75,8 +75,7 @@ public class CppdService {
     }
 
     private void assertPermission(boolean condition) {
-        if (!condition) {
+        if (!condition)
             throw new AccessDeniedException("Insufficient rights");
-        }
     }
 }

@@ -31,10 +31,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -57,7 +54,7 @@ public class EcdhLinkService {
     }
 
     @SneakyThrows
-    public String issue(Long claimId, LocalDateTime now, LocalDateTime expiry) {
+    public String issue(UUID claimId, LocalDateTime now, LocalDateTime expiry) {
         final var rng = new SecureRandom();
 
         final var kpg = KeyPairGenerator.getInstance("EC");
@@ -170,7 +167,7 @@ public class EcdhLinkService {
             String epkSerialized,
             String ctxSerialized,
             String sigSerialized
-    ) throws EcdhContextExpiredException, EcdhSignatureException {
+    ) {
         final var mac = Mac.getInstance("HmacSHA256");
         mac.init(this.ecdhLinkProperties.hmacKey());
 
@@ -245,7 +242,7 @@ public class EcdhLinkService {
 
         log.info("claimsMap: {}", claimsMap);
 
-        final var cid = Long.parseLong(claimsMap.get("cid"));
+        final var cid = UUID.fromString(claimsMap.get("cid"));
         final var now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
 
         if (Long.parseLong(claimsMap.get("exp")) <= now
@@ -255,18 +252,19 @@ public class EcdhLinkService {
         return claimsMap;
     }
 
-    public void storeEcdhSig(Long id, String sig) {
+    public void storeEcdhSig(UUID id, String sig) {
         final var key = PREFIX + id;
         redisTemplate.opsForValue().set(key, sig);
         redisTemplate.expire(key, ecdhLinkProperties.getExpiry(), TimeUnit.SECONDS);
     }
 
-    public boolean isActiveEcdhSig(Long id, String providedSig) {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean isActiveEcdhSig(UUID id, String providedSig) {
         final var storedToken = redisTemplate.opsForValue().get(PREFIX + id);
         return storedToken != null && storedToken.equals(providedSig);
     }
 
-    public void revokeEcdhSig(Long id) {
+    public void revokeEcdhSig(UUID id) {
         redisTemplate.delete(PREFIX + id);
     }
 }

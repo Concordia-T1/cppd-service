@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -27,7 +28,7 @@ public class IssueClaimRequest {
     @Email(message = "Must be a well-formed email address")
     private String manager_email;
 
-    @Schema(description = "Template ID")
-    @NotNull(message = "Template ID cannot be empty")
-    private Long template_id;
+    @Schema(description = "Template UUIDv7")
+    @NotNull(message = "Template UUIDv7 cannot be empty")
+    private UUID template_id;
 }

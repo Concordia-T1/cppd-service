@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-
 import ru.concordia.cppd_service.config.KafkaTopicConfig;
 import ru.concordia.cppd_service.dto.CandidateNotificationDto;
 import ru.concordia.cppd_service.dto.ManagerNotificationDto;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -62,25 +62,25 @@ public class NotificationService {
 
     public CandidateNotificationDto createCandidateNotification(
             String recipientEmail,
-            String senderUUID,
+            UUID senderUUID,
             String subject,
             String content) {
 
         return CandidateNotificationDto.builder()
                 .recipientEmail(recipientEmail)
-                .senderUUID(senderUUID)
+                .senderUUID(senderUUID.toString())
                 .subject(subject)
                 .content(content)
                 .build();
     }
 
     public ManagerNotificationDto createManagerNotification(
-            String managerUUID,
+            UUID managerUUID,
             String subject,
             String content) {
 
         return ManagerNotificationDto.builder()
-                .managerUUID(managerUUID)
+                .managerUUID(managerUUID.toString())
                 .subject(subject)
                 .content(content)
                 .build();

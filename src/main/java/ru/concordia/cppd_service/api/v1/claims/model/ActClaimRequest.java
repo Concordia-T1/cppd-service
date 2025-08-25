@@ -1,12 +1,17 @@
 package ru.concordia.cppd_service.api.v1.claims.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.concordia.cppd_service.validation.ValidEnum;
+
+import java.util.UUID;
 
 @Data
 @Builder
@@ -14,9 +19,9 @@ import ru.concordia.cppd_service.validation.ValidEnum;
 @AllArgsConstructor
 @Schema(description = "Act claim request")
 public class ActClaimRequest {
-    @Schema(description = "Claim ID")
-    @NotNull(message = "Claim ID cannot be empty")
-    private Long claim_id;
+    @Schema(description = "Claim UUIDv7")
+    @NotNull(message = "Claim UUIDv7 cannot be empty")
+    private UUID claim_id;
 
     @Schema(description = "SIG (HMAC-SHA256 signature)")
     @NotBlank(message = "SIG cannot be empty")

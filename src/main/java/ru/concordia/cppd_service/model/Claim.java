@@ -6,11 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import ru.concordia.cppd_service.model.strategy.UUIDv7Strategy;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @SuppressWarnings("JpaDataSourceORMInspection")
 @Data
@@ -25,17 +28,13 @@ public class Claim {
     // X-Account-ID: 1
     // X-Account-Email: admin@concordia.t1.ru
     // X-Account-Role: ROLE_ADMIN или ROLE_MANAGER
-    // X-Account-Telegram: @abc123
-    // X-Account-Whatsapp: @abc123
-    // X-Account-SMTP-Key: <Base64url encoded encrypted SMTP-key>
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "claim_seq") // для поддержки batch
-    @SequenceGenerator(name = "claim_seq", sequenceName = "claim_sequence")
-    private Long id;
+    @UuidGenerator(algorithm = UUIDv7Strategy.class)
+    private UUID id;
 
     @Column(name = "owner_id", nullable = false)
-    private Long ownerId;
+    private UUID ownerId;
 
     @Column(name = "owner_email", nullable = false)
     private String ownerEmail;

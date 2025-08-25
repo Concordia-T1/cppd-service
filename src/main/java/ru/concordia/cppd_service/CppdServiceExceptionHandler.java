@@ -15,9 +15,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
 import ru.concordia.cppd_service.api.v1.model.ErrorResponse;
 import ru.concordia.cppd_service.api.v1.model.ValidationError;
+import ru.concordia.cppd_service.service.exceptions.EcdhContextExpiredException;
 import ru.concordia.cppd_service.service.exceptions.EcdhSignatureException;
 
 import java.util.Collections;

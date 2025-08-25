@@ -1,7 +1,8 @@
 package ru.concordia.cppd_service.api.v1.templates.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
 import ru.concordia.cppd_service.api.v1.model.SuccessResponse;
 

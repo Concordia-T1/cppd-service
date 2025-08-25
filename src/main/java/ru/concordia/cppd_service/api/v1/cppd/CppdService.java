@@ -36,13 +36,6 @@ public class CppdService {
 
         log.info("Updating CPPD templates");
 
-        if (request.getContent() == null || request.getContent().isBlank()) {
-            log.error("Invalid CPPD content: content cannot be empty");
-            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
-            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
-            return ResponseEntity.badRequest().build();
-        }
-
         Cppd cppd = cppdRepository.findFirstByOrderByCreatedAtDesc()
                 .orElseGet(() -> Cppd.builder()
                         .createdAt(LocalDateTime.now())

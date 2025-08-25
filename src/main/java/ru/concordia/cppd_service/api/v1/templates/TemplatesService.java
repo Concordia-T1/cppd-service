@@ -18,7 +18,6 @@ import ru.concordia.cppd_service.repository.TemplateRepository;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -81,16 +80,9 @@ public class TemplatesService {
     public ResponseEntity<TemplateResponse> updateTemplate(UUID id, CreateTemplateRequest request, String principalRole) {
         assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
 
-        Optional<Template> existingTemplate = templateRepository.findById(id);
+        final var template = templateRepository.findById(id)
+                .orElseThrow(TemplateNotFoundException::new);
 
-        if (existingTemplate.isEmpty()) {
-            log.warn("Attempt to update non-existing templates with ID {}", id);
-            // todo! адаптировать под наш BaseResponse, а именно ErrorResponse,
-            //  либо выкидывать ошибку, убедиться что она обрабатывается в CppdServiceExceptionHandler
-            return ResponseEntity.notFound().build();
-        }
-
-        Template template = existingTemplate.get();
         template.setName(request.getName());
         template.setSubject(request.getSubject());
         template.setContent(request.getContent());

@@ -325,7 +325,7 @@ components:
       description: Authenticated user's role
       schema:
         type: string
-        enum: [ROLE_ADMIN, ROLE_MANAGER]
+        enum: [ ROLE_ADMIN, ROLE_MANAGER ]
         example: ROLE_ADMIN
 
     ClaimId:
@@ -384,7 +384,7 @@ components:
       description: Sort direction
       schema:
         type: string
-        enum: [ASC, DESC]
+        enum: [ ASC, DESC ]
         default: DESC
         example: DESC
 
@@ -415,7 +415,7 @@ components:
             format: email
           minItems: 1
           description: List of candidate email addresses
-          example: ["candidate1@example.com", "candidate2@example.com"]
+          example: [ "candidate1@example.com", "candidate2@example.com" ]
         manager_email:
           type: string
           format: email
@@ -469,7 +469,7 @@ components:
           example: "78001234567"
         state:
           type: string
-          enum: [ACT_CONSENT, ACT_REFUSED]
+          enum: [ ACT_CONSENT, ACT_REFUSED ]
           description: Candidate's response to the claim
           example: "ACT_CONSENT"
 
@@ -583,7 +583,7 @@ components:
           example: 123
         status:
           type: string
-          enum: [STATUS_QUEUED, STATUS_WAITING, STATUS_CONSENT, STATUS_REFUSED, STATUS_TIMEOUT]
+          enum: [ STATUS_QUEUED, STATUS_WAITING, STATUS_CONSENT, STATUS_REFUSED, STATUS_TIMEOUT ]
           description: Current status of the claim
           example: STATUS_QUEUED
         responded_at:
@@ -788,7 +788,7 @@ components:
           properties:
             ok:
               type: boolean
-              enum: [true]
+              enum: [ true ]
               example: true
             detail:
               type: string
@@ -804,7 +804,7 @@ components:
           properties:
             ok:
               type: boolean
-              enum: [false]
+              enum: [ false ]
               example: false
             detail:
               type: string
@@ -937,4 +937,4 @@ tags:
     description: Operations for managing message templates
 
 security:
-  - HeaderAuth: []
+  - HeaderAuth: [ ]

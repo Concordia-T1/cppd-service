@@ -1,5 +1,6 @@
 package ru.concordia.cppd_service.api.v1.cppd;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class CppdController {
 
     @PutMapping("/update")
     public ResponseEntity<CppdResponse> updateCppdTemplate(
-            @RequestBody CppdUpdateRequest request,
+            @Valid @RequestBody CppdUpdateRequest request,
             @RequestHeader("X-User-Role") String principalRole
     ) {
         log.info("Request to update CPPD templates");

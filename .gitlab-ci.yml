@@ -15,7 +15,7 @@ build_backend:
     - docker push $DOCKER_USERNAME/$DOCKER_IMAGE:latest
     
   only:
-    - tags
+    - master
 
 deploy:
   image: alpine/k8s:1.27.4
@@ -31,5 +31,5 @@ deploy:
     - kubectl apply -f k8s --request-timeout=30s
 
   only:
-    - tags
+    - master
 

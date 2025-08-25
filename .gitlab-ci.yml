@@ -1,5 +1,6 @@
 stages:
   - build
+  - deploy
 
 variables:
   DOCKER_USERNAME: alexeykarakcheev
@@ -14,5 +15,21 @@ build_backend:
     - docker push $DOCKER_USERNAME/$DOCKER_IMAGE:latest
     
   only:
-    - master
+    - tags
+
+deploy:
+  image: alpine/k8s:1.27.4
+  stage: deploy
+  before_script:
+    - mkdir -p ~/.kube
+    - echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+    - chmod +r ~/.kube/config
+  script:
+    # - cat ~/.kube/config
+    # - kubectl config current-context
+    # - kubectl cluster-info
+    - kubectl apply -f k8s --request-timeout=30s
+
+  only:
+    - tags
 

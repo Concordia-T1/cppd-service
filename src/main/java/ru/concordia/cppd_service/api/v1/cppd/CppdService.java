@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.concordia.cppd_service.api.v1.cppd.exceptions.CppdNotFoundException;
 import ru.concordia.cppd_service.api.v1.cppd.model.CppdResponse;
 import ru.concordia.cppd_service.api.v1.cppd.model.CppdUpdateRequest;
 import ru.concordia.cppd_service.model.Cppd;
@@ -24,16 +25,7 @@ public class CppdService {
         log.info("Fetching current CPPD templates");
 
         Cppd cppd = cppdRepository.findFirstByOrderByCreatedAtDesc()
-                .orElseGet(() -> {
-                    // todo! мы можем вынести создание дефолтного СОПД в changeset liquibase,
-                    //  как это уже реализовано в auth-service
-                    log.info("No CPPD templates found, creating default one");
-                    Cppd defaultCppd = Cppd.builder()
-                            .content("Default CPPD templates content")
-                            .createdAt(LocalDateTime.now())
-                            .build();
-                    return cppdRepository.save(defaultCppd);
-                });
+                .orElseThrow(CppdNotFoundException::new);
 
         return ResponseEntity.ok(mapToResponse(cppd));
     }

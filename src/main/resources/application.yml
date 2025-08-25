@@ -20,7 +20,7 @@ spring:
     password: ${DB_PASS}
   jpa:
     hibernate:
-      ddl-auto: update # do not forget to switch later to liquibase
+      ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -29,6 +29,10 @@ spring:
         order_updates: true
         order_inserts: true
     show-sql: true
+  liquibase:
+    enabled: true
+    change-log: classpath:db/liquibase/db.changelog-master.yaml
+    default-schema: public
 
   # Kafka
   kafka:

@@ -219,7 +219,7 @@ paths:
       tags:
         - Templates
       summary: Create new template
-      description: Create a new message template for CPPD claims. Requires ADMIN role.
+      description: Create a new message template for CPPD claims.
       operationId: createTemplate
       parameters:
         - $ref: '#/components/parameters/UserId'
@@ -243,7 +243,7 @@ paths:
       tags:
         - Templates
       summary: Update existing template
-      description: Update an existing message template. Requires ADMIN role.
+      description: Update an existing message template.
       operationId: updateTemplate
       parameters:
         - $ref: '#/components/parameters/TemplateId'

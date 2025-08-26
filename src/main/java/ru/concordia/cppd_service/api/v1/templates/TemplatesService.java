@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.concordia.cppd_service.api.v1.templates.exceptions.TemplateNotFoundException;
@@ -17,7 +16,6 @@ import ru.concordia.cppd_service.model.Template;
 import ru.concordia.cppd_service.repository.TemplateRepository;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -57,9 +55,7 @@ public class TemplatesService {
     }
 
     @Transactional
-    public ResponseEntity<TemplateResponse> createTemplate(CreateTemplateRequest request, UUID ownerId, String principalRole) {
-        assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
-
+    public ResponseEntity<TemplateResponse> createTemplate(CreateTemplateRequest request, UUID ownerId) {
         Template template = Template.builder()
                 .name(request.getName())
                 .subject(request.getSubject())
@@ -77,9 +73,7 @@ public class TemplatesService {
     }
 
     @Transactional
-    public ResponseEntity<TemplateResponse> updateTemplate(UUID id, CreateTemplateRequest request, String principalRole) {
-        assertPermission(Objects.equals(principalRole, "ROLE_ADMIN"));
-
+    public ResponseEntity<TemplateResponse> updateTemplate(UUID id, CreateTemplateRequest request) {
         final var template = templateRepository.findById(id)
                 .orElseThrow(TemplateNotFoundException::new);
 
@@ -126,10 +120,5 @@ public class TemplatesService {
                 .created_at(template.getCreatedAt())
                 .updated_at(template.getUpdatedAt())
                 .build();
-    }
-
-    private void assertPermission(boolean condition) {
-        if (!condition)
-            throw new AccessDeniedException("Insufficient rights");
     }
 }

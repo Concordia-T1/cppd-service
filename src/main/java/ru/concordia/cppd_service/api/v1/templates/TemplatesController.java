@@ -40,20 +40,18 @@ public class TemplatesController {
     @PostMapping("/create")
     public ResponseEntity<TemplateResponse> createTemplate(
             @Valid @RequestBody CreateTemplateRequest request,
-            @RequestHeader("X-User-ID") UUID principalId,
-            @RequestHeader("X-User-Role") String principalRole
+            @RequestHeader("X-User-ID") UUID principalId
     ) {
         log.info("Request to create new templates: {}", request.getName());
-        return templatesService.createTemplate(request, principalId, principalRole);
+        return templatesService.createTemplate(request, principalId);
     }
 
     @PutMapping("/{id}/update")
     public ResponseEntity<TemplateResponse> updateTemplate(
             @PathVariable UUID id,
-            @Valid @RequestBody CreateTemplateRequest request,
-            @RequestHeader("X-User-Role") String principalRole
+            @Valid @RequestBody CreateTemplateRequest request
     ) {
         log.info("Request to update templates with ID {}: {}", id, request.getName());
-        return templatesService.updateTemplate(id, request, principalRole);
+        return templatesService.updateTemplate(id, request);
     }
 }

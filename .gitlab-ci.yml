@@ -29,6 +29,7 @@ deploy:
     # - kubectl config current-context
     # - kubectl cluster-info
     - kubectl apply -f k8s --request-timeout=30s
+    - kubectl rollout restart deployment/cppd-backend
 
   only:
     - master

@@ -3,6 +3,7 @@ package ru.concordia.cppd_service.api.v1.claims;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -108,14 +109,18 @@ public class ClaimsService {
 
         for (Claim claim : issuedClaims) {
             // noinspection HttpUrlsUsage
-            final var candidateUri = String.format(" http://%s%s",
+            final var candidateUri = String.format("http://%s%s",
                     ecdhLinkProperties.getDomain(), ecdhLinkService.issue(claim.getId(), now, expiry));
 
+            final var placeholdersMap = new HashMap<String, String>();
+            placeholdersMap.put("invite_link", candidateUri);
+
+            final var placeholdersSub = new StringSubstitutor(placeholdersMap, "%", "%");
             final var candidateNotification = notificationService.createCandidateNotification(
                     claim.getCandidateEmail(),
                     principalId,
                     template.getSubject(),
-                    template.getContent() + candidateUri // for now.
+                    placeholdersSub.replace(template.getContent())
             );
 
             notificationService.sendCandidateNotification(candidateNotification);

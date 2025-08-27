@@ -3,7 +3,6 @@ package ru.concordia.cppd_service.api.v1.claims;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringSubstitutor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,6 +23,8 @@ import ru.concordia.cppd_service.service.props.EcdhLinkProperties;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Service
@@ -115,12 +116,11 @@ public class ClaimsService {
             final var placeholdersMap = new HashMap<String, String>();
             placeholdersMap.put("invite_link", candidateUri);
 
-            final var placeholdersSub = new StringSubstitutor(placeholdersMap, "%", "%");
             final var candidateNotification = notificationService.createCandidateNotification(
                     claim.getCandidateEmail(),
                     principalId,
                     template.getSubject(),
-                    placeholdersSub.replace(template.getContent())
+                    replacePlaceholders(template.getContent(), placeholdersMap)
             );
 
             notificationService.sendCandidateNotification(candidateNotification);
@@ -207,6 +207,25 @@ public class ClaimsService {
                 .created_at(claim.getCreatedAt())
                 .updated_at(claim.getUpdatedAt())
                 .build();
+    }
+
+    private String replacePlaceholders(String template, Map<String, String> placeholders) {
+        final var pattern = Pattern.compile("%(\\w+)%");
+        final var matcher = pattern.matcher(template);
+        final var builder = new StringBuilder();
+
+        while (matcher.find()) {
+            final var key = matcher.group(1);
+            final var replacement = placeholders.get(key);
+
+            if (replacement != null)
+                matcher.appendReplacement(builder, Matcher.quoteReplacement(replacement));
+            else
+                matcher.appendReplacement(builder, matcher.group(0));
+        }
+
+        matcher.appendTail(builder);
+        return builder.toString();
     }
 
     private void assertPermission(boolean condition) {

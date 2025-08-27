@@ -42,7 +42,6 @@ public class ActClaimRequest {
 
     @Schema(description = "Candidate birthdate")
     @NotNull(message = "Candidate birthdate can't be empty")
-    @Size(min = 10, max = 10, message = "Candidate birthdate must be well-formed, e.g: '31.12.1970'")
     @PastOrPresent(message = "Candidate birthdate must be in the past or present")
     @JsonFormat(pattern = "dd.MM.yyyy")
     private LocalDate birthdate;

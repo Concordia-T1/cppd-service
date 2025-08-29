@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Concordia CPPD Service API
-  description: Authentication and account management service for Concordia platform
+  description: CPPD management service for Concordia platform
   version: 0.0.1-SNAPSHOT
   contact:
     name: T1 Team-34
